@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="mainBackgraund">#e2e2e2</color>
+    <color name="colorWhite">#ffffff</color>
+
+    <color name="colorGrey">#b2616161</color>
+    <color name="colorBlack">#000000</color>
+
+    <color name="colorBirthdays">#87e999</color>
+    <color name="colorBirthdaysDark">#34cf51</color>
+
+    <color name="colorTodo">#94d3f7</color>
+    <color name="colorTodoDark">#28a8f1</color>
+
+    <color name="colorIdeas">#ffa3a4</color>
+    <color name="colorIdeasDark">#ea3538</color>
+</resources>

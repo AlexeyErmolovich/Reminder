@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/item_listview_padding">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/containerItemListView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorWhite"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:layout_margin="5dp"
+                    android:id="@+id/imageNote"
+                    android:layout_width="@dimen/image_width_listview"
+                    android:layout_height="@dimen/image_height_listview"
+                    android:maxHeight="@dimen/image_height_listview"
+                    android:maxWidth="@dimen/image_width_listview"
+                    android:minHeight="@dimen/image_height_listview"
+                    android:minWidth="@dimen/image_width_listview"
+                    android:src="@drawable/account_circle" />
+
+                <LinearLayout
+                    android:id="@+id/linearLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toEndOf="@+id/imageNote"
+                    android:layout_toRightOf="@+id/imageNote"
+                    android:orientation="vertical"
+                    android:paddingRight="30dp">
+
+                    <TextView
+                        android:id="@+id/textViewHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_header"
+                        android:maxLines="2"
+                        android:textAppearance="?android:attr/textAppearanceLarge"
+                        android:textColor="@color/colorBlack" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingRight="50dp">
+
+                        <TextView
+                            android:id="@+id/textViewDescription"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:alpha="0.5"
+                            android:maxLines="3"
+                            android:text="@string/text_description"
+                            android:textColor="@color/colorBlack"
+                            android:textStyle="italic" />
+
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/layoutTypeNote"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="-18dp"
+            android:layout_marginTop="15dp"
+            android:background="@color/colorGrey"
+            android:rotation="45">
+
+            <TextView
+                android:id="@+id/textViewTypeNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="@string/text_type_note"
+                android:textColor="@color/colorBlack"
+                android:textSize="10dp" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>

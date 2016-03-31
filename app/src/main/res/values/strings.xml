@@ -1,0 +1,79 @@
+<resources>
+    <string name="app_name">Reminder</string>
+    <string name="text_header">Header</string>
+    <string name="text_type_note">Type Note</string>
+    <string name="text_description">Description</string>
+    <string name="text_fire_date">Fire Date</string>
+    <string name="text_body">Body</string>
+    <string name="text_time">Time</string>
+    <string name="text_date">Date</string>
+    <string name="text_remindof">Remind of</string>
+    <string name="text_priority">Priority</string>
+
+    <string name="new_note">New Note</string>
+    <string name="revise_note">Revise Note</string>
+    <string name="delete_note">Delete Note</string>
+    <string name="text_cancel">Cancel</string>
+    <string name="text_save">Save</string>
+    <string name="text_no">No</string>
+    <string name="text_yes">Yes</string>
+    <string name="question_save">Exit without saving?</string>
+    <string name="text_error_header">Enter the header!</string>
+    <string name="text_error_description">Enter the description!</string>
+    <string name="text_error_body">Enter the body!</string>
+    <string name="text_error_date">Enter the date!</string>
+    <string name="text_error_time">Enter the time!</string>
+    <string name="text_change_image">Change Image</string>
+    <string name="text_make_photo">Make a photo</string>
+    <string name="text_load_gallery">Load from the gallery</string>
+    <string name="title_alertdialog_image">What to do?</string>
+    <string name="notification_todo">You have scheduled action</string>
+    <string name="notification_birthday">Do not forget to congratulate on birthday</string>
+    <string name="birthday">Birthday</string>
+    <string name="todo">To do</string>
+
+
+    <string-array name="load_image_and_change">
+        <item>Make a photo</item>
+        <item>Load from the gallery</item>
+        <item>Change image</item>
+    </string-array>
+
+    <string-array name="load_image">
+        <item>Make a photo</item>
+        <item>Load from the gallery</item>
+    </string-array>
+
+    <string-array name="notes">
+        <item>Birthday</item>
+        <item>Todo</item>
+        <item>Idea</item>
+    </string-array>
+
+    <string-array name="priorities">
+        <item>Low</item>
+        <item>Middle</item>
+        <item>High</item>
+    </string-array>
+
+    <string-array name="remind_of">
+        <item>no thanks</item>
+        <item>1 minute</item>
+        <item>5 minutes</item>
+        <item>10 minutes</item>
+        <item>15 minutes</item>
+        <item>20 minutes</item>
+        <item>25 minutes</item>
+        <item>30 minutes</item>
+        <item>45 minutes</item>
+        <item>1 hour</item>
+        <item>2 hour</item>
+        <item>3 hour</item>
+        <item>4 hour</item>
+        <item>5 hour</item>
+        <item>10 hour</item>
+        <item>15 hour</item>
+        <item>20 hour</item>
+        <item>1 day</item>
+    </string-array>
+</resources>
