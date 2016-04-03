@@ -70,6 +70,7 @@ public class NoteAdapter extends BaseAdapter {
     private void loadData() {
         DaoMaster.OpenHelper helper = new DaoMaster.DevOpenHelper(activity, "Note", null);
         SQLiteDatabase db = helper.getWritableDatabase();
+        helper.onUpgrade(db, db.getVersion(), DaoMaster.SCHEMA_VERSION);
         DaoMaster daoMaster = new DaoMaster(db);
         DaoSession session = daoMaster.newSession();
         this.noteDao = session.getNoteDao();
@@ -82,7 +83,7 @@ public class NoteAdapter extends BaseAdapter {
             Bitmap bitmap = null;
             if (note.getImageCut().length != 0) {
                 bitmap = BitmapFactory.decodeByteArray(note.getImageCut(), 0, note.getImageCut().length);
-            } 
+            }
             note.setBitmap(bitmap);
         }
     }
@@ -152,7 +153,9 @@ public class NoteAdapter extends BaseAdapter {
         holder.textViewHeader.setText(note.getHeader());
         holder.textViewDescription.setText(note.getDescription());
 
-        if (note.getBitmap() != null) {
+        if (note.getBitmap() == null) {
+            holder.imageView.setImageBitmap(((BitmapDrawable)activity.getResources().getDrawable(R.drawable.account_circle)).getBitmap());
+        }else{
             holder.imageView.setImageBitmap(note.getBitmap());
         }
 
@@ -187,11 +190,11 @@ public class NoteAdapter extends BaseAdapter {
         builder.setItems(new String[]{"Change note", "Delete note"}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if(which==0) {
+                if (which == 0) {
                     Intent intent = new Intent(activity, ChangeNoteActivity.class);
                     intent.putExtra("NoteUUID", note.getUuid());
                     activity.startActivityForResult(intent, 4);
-                }else if(which==1){
+                } else if (which == 1) {
                     noteDao.delete(note);
                     notifyDataSetChanged();
                 }

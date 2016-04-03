@@ -16,14 +16,13 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
 
 public class CropperActivity extends AppCompatActivity {
 
-    private int MAX_WIDTH = 2000;
-    private int MAX_HEIGHT = 2000;
+    private int MAX_WIDTH = 1000;
+    private int MAX_HEIGHT = 1000;
 
     private int leftCrop;
     private int topCrop;
@@ -119,8 +118,8 @@ public class CropperActivity extends AppCompatActivity {
         Matrix matrix = new Matrix();
         matrix.postScale(zoomScale, zoomScale);
         bitmapOriginal = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-        MAX_WIDTH = bitmapOriginal.getWidth();
-        MAX_HEIGHT = bitmapOriginal.getHeight();
+        MAX_WIDTH = bitmapOriginal.getWidth() * 2;
+        MAX_HEIGHT = bitmapOriginal.getHeight() * 2;
         imageView.setImageBitmap(bitmapOriginal);
     }
 
@@ -169,7 +168,7 @@ public class CropperActivity extends AppCompatActivity {
                                     } else if (layoutParamsImage.height <= widthCrop) {
                                         layoutParamsImage.height = widthCrop;
                                         layoutParamsImage.width += zoomWidth;
-                                    } else{
+                                    } else {
                                         layoutParamsImage.width = widthCrop;
                                         layoutParamsImage.height += zoomHeight;
                                     }
@@ -216,10 +215,10 @@ public class CropperActivity extends AppCompatActivity {
     public byte[] getCroppedImage() {
         ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
         float zoomScale;
-        if(layoutParams.width<layoutParams.height){
-            zoomScale = (float)(layoutParams.width+5) / bitmapOriginal.getWidth();
-        }else{
-            zoomScale = (float)(layoutParams.height+5)/ bitmapOriginal.getHeight();
+        if (layoutParams.width < layoutParams.height) {
+            zoomScale = (float) (layoutParams.width + 5) / bitmapOriginal.getWidth();
+        } else {
+            zoomScale = (float) (layoutParams.height + 5) / bitmapOriginal.getHeight();
         }
         Matrix matrix = new Matrix();
         matrix.postScale(zoomScale, zoomScale);
@@ -229,7 +228,7 @@ public class CropperActivity extends AppCompatActivity {
         Bitmap cropped;
         try {
             cropped = Bitmap.createBitmap(bitmap, (int) x, (int) y, widthCrop, widthCrop);
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             cropped = Bitmap.createBitmap(bitmap, (int) x, (int) y, widthCrop - 100, widthCrop - 100);
         }
         ByteArrayOutputStream stream = new ByteArrayOutputStream();

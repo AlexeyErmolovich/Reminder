@@ -19,9 +19,6 @@
         <activity android:name=".ChangeNoteActivity"
             android:screenOrientation="portrait"
             android:configChanges="keyboardHidden|orientation"/>
-        <activity android:name=".CropperImageActivity"
-            android:screenOrientation="portrait"
-            android:configChanges="keyboardHidden|orientation"/>
 
         <receiver android:name=".AlarmReceiver"/>
         <!--

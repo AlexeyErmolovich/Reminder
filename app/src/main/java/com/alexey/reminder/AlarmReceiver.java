@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
+import android.os.SystemClock;
 
 import com.alexey.reminder.model.DaoMaster;
 import com.alexey.reminder.model.DaoSession;
@@ -59,7 +60,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         builder.setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.ic_application)
                 .setLargeIcon(BitmapFactory.decodeByteArray(note.getImage(), 0, note.getImage().length))
-                .setWhen(note.getFireDate().getTime())
+                .setWhen(System.currentTimeMillis())
                 .setAutoCancel(true)
                 .setTicker(textTicket)
                 .setContentInfo(typeNote)
@@ -70,7 +71,7 @@ public class AlarmReceiver extends BroadcastReceiver {
             DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
             DateFormat timeFormat = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
             builder.setContentText(dateFormat.format(note.getFireDate()) +
-                            " " + timeFormat.format(note.getFireDate()));
+                    " " + timeFormat.format(note.getFireDate()));
         } else {
             builder.setContentText(note.getDescription());
         }

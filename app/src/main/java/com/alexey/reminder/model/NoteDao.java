@@ -34,12 +34,14 @@ public class NoteDao extends AbstractDao<Note, String> {
         public final static Property Body = new Property(3, String.class, "body", false, "BODY");
         public final static Property TimeStamp = new Property(4, java.util.Date.class, "timeStamp", false, "TIME_STAMP");
         public final static Property FireDate = new Property(5, java.util.Date.class, "fireDate", false, "FIRE_DATE");
-        public final static Property Performed = new Property(6, boolean.class, "performed", false, "PERFORMED");
-        public final static Property RemindOf = new Property(7, Long.class, "remindOf", false, "REMIND_OF");
-        public final static Property ImageCut = new Property(8, byte[].class, "imageCut", false, "IMAGE_CUT");
-        public final static Property Image = new Property(9, byte[].class, "image", false, "IMAGE");
-        public final static Property Priority = new Property(10, int.class, "priority", false, "PRIORITY");
-        public final static Property TypeNote = new Property(11, int.class, "typeNote", false, "TYPE_NOTE");
+        public final static Property Regularly = new Property(6, Boolean.class, "Regularly", false, "REGULARLY");
+        public final static Property DaysOfWeek = new Property(7, Byte.class, "DaysOfWeek", false, "DAYS_OF_WEEK");
+        public final static Property Performed = new Property(8, boolean.class, "performed", false, "PERFORMED");
+        public final static Property RemindOf = new Property(9, Long.class, "remindOf", false, "REMIND_OF");
+        public final static Property ImageCut = new Property(10, byte[].class, "imageCut", false, "IMAGE_CUT");
+        public final static Property Image = new Property(11, byte[].class, "image", false, "IMAGE");
+        public final static Property Priority = new Property(12, int.class, "priority", false, "PRIORITY");
+        public final static Property TypeNote = new Property(13, int.class, "typeNote", false, "TYPE_NOTE");
     };
 
     private final PriorityConverter priorityConverter = new PriorityConverter();
@@ -63,12 +65,14 @@ public class NoteDao extends AbstractDao<Note, String> {
                 "\"BODY\" TEXT NOT NULL ," + // 3: body
                 "\"TIME_STAMP\" INTEGER NOT NULL ," + // 4: timeStamp
                 "\"FIRE_DATE\" INTEGER," + // 5: fireDate
-                "\"PERFORMED\" INTEGER NOT NULL ," + // 6: performed
-                "\"REMIND_OF\" INTEGER," + // 7: remindOf
-                "\"IMAGE_CUT\" BLOB," + // 8: imageCut
-                "\"IMAGE\" BLOB," + // 9: image
-                "\"PRIORITY\" INTEGER NOT NULL ," + // 10: priority
-                "\"TYPE_NOTE\" INTEGER NOT NULL );"); // 11: typeNote
+                "\"REGULARLY\" INTEGER," + // 6: Regularly
+                "\"DAYS_OF_WEEK\" INTEGER," + // 7: DaysOfWeek
+                "\"PERFORMED\" INTEGER NOT NULL ," + // 8: performed
+                "\"REMIND_OF\" INTEGER," + // 9: remindOf
+                "\"IMAGE_CUT\" BLOB," + // 10: imageCut
+                "\"IMAGE\" BLOB," + // 11: image
+                "\"PRIORITY\" INTEGER NOT NULL ," + // 12: priority
+                "\"TYPE_NOTE\" INTEGER NOT NULL );"); // 13: typeNote
     }
 
     /** Drops the underlying database table. */
@@ -95,24 +99,34 @@ public class NoteDao extends AbstractDao<Note, String> {
         if (fireDate != null) {
             stmt.bindLong(6, fireDate.getTime());
         }
-        stmt.bindLong(7, entity.getPerformed() ? 1L: 0L);
+ 
+        Boolean Regularly = entity.getRegularly();
+        if (Regularly != null) {
+            stmt.bindLong(7, Regularly ? 1L: 0L);
+        }
+ 
+        Byte DaysOfWeek = entity.getDaysOfWeek();
+        if (DaysOfWeek != null) {
+            stmt.bindLong(8, DaysOfWeek);
+        }
+        stmt.bindLong(9, entity.getPerformed() ? 1L: 0L);
  
         Long remindOf = entity.getRemindOf();
         if (remindOf != null) {
-            stmt.bindLong(8, remindOf);
+            stmt.bindLong(10, remindOf);
         }
  
         byte[] imageCut = entity.getImageCut();
         if (imageCut != null) {
-            stmt.bindBlob(9, imageCut);
+            stmt.bindBlob(11, imageCut);
         }
  
         byte[] image = entity.getImage();
         if (image != null) {
-            stmt.bindBlob(10, image);
+            stmt.bindBlob(12, image);
         }
-        stmt.bindLong(11, priorityConverter.convertToDatabaseValue(entity.getPriority()));
-        stmt.bindLong(12, typeNoteConverter.convertToDatabaseValue(entity.getTypeNote()));
+        stmt.bindLong(13, priorityConverter.convertToDatabaseValue(entity.getPriority()));
+        stmt.bindLong(14, typeNoteConverter.convertToDatabaseValue(entity.getTypeNote()));
     }
 
     /** @inheritdoc */
@@ -131,12 +145,14 @@ public class NoteDao extends AbstractDao<Note, String> {
             cursor.getString(offset + 3), // body
             new java.util.Date(cursor.getLong(offset + 4)), // timeStamp
             cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)), // fireDate
-            cursor.getShort(offset + 6) != 0, // performed
-            cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7), // remindOf
-            cursor.isNull(offset + 8) ? null : cursor.getBlob(offset + 8), // imageCut
-            cursor.isNull(offset + 9) ? null : cursor.getBlob(offset + 9), // image
-            priorityConverter.convertToEntityProperty(cursor.getInt(offset + 10)), // priority
-            typeNoteConverter.convertToEntityProperty(cursor.getInt(offset + 11)) // typeNote
+            cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0, // Regularly
+            cursor.isNull(offset + 7) ? null : (byte) cursor.getShort(offset + 7), // DaysOfWeek
+            cursor.getShort(offset + 8) != 0, // performed
+            cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9), // remindOf
+            cursor.isNull(offset + 10) ? null : cursor.getBlob(offset + 10), // imageCut
+            cursor.isNull(offset + 11) ? null : cursor.getBlob(offset + 11), // image
+            priorityConverter.convertToEntityProperty(cursor.getInt(offset + 12)), // priority
+            typeNoteConverter.convertToEntityProperty(cursor.getInt(offset + 13)) // typeNote
         );
         return entity;
     }
@@ -150,12 +166,14 @@ public class NoteDao extends AbstractDao<Note, String> {
         entity.setBody(cursor.getString(offset + 3));
         entity.setTimeStamp(new java.util.Date(cursor.getLong(offset + 4)));
         entity.setFireDate(cursor.isNull(offset + 5) ? null : new java.util.Date(cursor.getLong(offset + 5)));
-        entity.setPerformed(cursor.getShort(offset + 6) != 0);
-        entity.setRemindOf(cursor.isNull(offset + 7) ? null : cursor.getLong(offset + 7));
-        entity.setImageCut(cursor.isNull(offset + 8) ? null : cursor.getBlob(offset + 8));
-        entity.setImage(cursor.isNull(offset + 9) ? null : cursor.getBlob(offset + 9));
-        entity.setPriority(priorityConverter.convertToEntityProperty(cursor.getInt(offset + 10)));
-        entity.setTypeNote(typeNoteConverter.convertToEntityProperty(cursor.getInt(offset + 11)));
+        entity.setRegularly(cursor.isNull(offset + 6) ? null : cursor.getShort(offset + 6) != 0);
+        entity.setDaysOfWeek(cursor.isNull(offset + 7) ? null : (byte) cursor.getShort(offset + 7));
+        entity.setPerformed(cursor.getShort(offset + 8) != 0);
+        entity.setRemindOf(cursor.isNull(offset + 9) ? null : cursor.getLong(offset + 9));
+        entity.setImageCut(cursor.isNull(offset + 10) ? null : cursor.getBlob(offset + 10));
+        entity.setImage(cursor.isNull(offset + 11) ? null : cursor.getBlob(offset + 11));
+        entity.setPriority(priorityConverter.convertToEntityProperty(cursor.getInt(offset + 12)));
+        entity.setTypeNote(typeNoteConverter.convertToEntityProperty(cursor.getInt(offset + 13)));
      }
     
     /** @inheritdoc */

@@ -31,200 +31,312 @@
 
             </android.support.design.widget.AppBarLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="10dp">
+            <ScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="10dp">
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/imageNote"
-                        android:layout_width="@dimen/image_width"
-                        android:layout_height="@dimen/image_height"
-                        android:maxHeight="@dimen/image_height"
-                        android:maxWidth="@dimen/image_width"
-                        android:minHeight="@dimen/image_height"
-                        android:minWidth="@dimen/image_width"
-                        android:src="@drawable/account_circle" />
-
-                    <LinearLayout
+                    <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_toEndOf="@+id/imageNote"
-                        android:layout_toRightOf="@+id/imageNote"
-                        android:orientation="vertical">
+                        android:layout_height="wrap_content">
 
-                        <RelativeLayout
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/imageNote"
+                            android:layout_width="@dimen/image_width"
+                            android:layout_height="@dimen/image_height"
+                            android:maxHeight="@dimen/image_height"
+                            android:maxWidth="@dimen/image_width"
+                            android:minHeight="@dimen/image_height"
+                            android:minWidth="@dimen/image_width"
+                            android:src="@drawable/account_circle" />
+
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="50dp">
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:layout_toEndOf="@+id/imageNote"
+                            android:layout_toRightOf="@+id/imageNote"
+                            android:orientation="vertical">
 
-                            <TextView
-                                android:id="@+id/textViewTypeNote"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerVertical="true"
-                                android:text="@string/text_type_note"
-                                android:textSize="16dp" />
-
-                            <Spinner
-                                android:id="@+id/spinerTypeNote"
+                            <RelativeLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_centerVertical="true"
-                                android:layout_toEndOf="@+id/textViewTypeNote"
-                                android:layout_toRightOf="@+id/textViewTypeNote"
-                                android:entries="@array/notes"
-                                android:textAppearance="?android:attr/textAppearanceMedium" />
+                                android:layout_height="50dp">
 
-                        </RelativeLayout>
+                                <TextView
+                                    android:id="@+id/textViewTypeNote"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerVertical="true"
+                                    android:text="@string/text_type_note"
+                                    android:textSize="16dp" />
 
-                        <android.support.design.widget.TextInputLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                                <Spinner
+                                    android:id="@+id/spinerTypeNote"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerVertical="true"
+                                    android:layout_toEndOf="@+id/textViewTypeNote"
+                                    android:layout_toRightOf="@+id/textViewTypeNote"
+                                    android:entries="@array/notes"
+                                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
-                            <EditText
-                                android:id="@+id/editTextHeader"
+                            </RelativeLayout>
+
+                            <android.support.design.widget.TextInputLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="@string/text_header"
-                                android:maxLines="2" />
+                                android:layout_height="wrap_content">
 
-                        </android.support.design.widget.TextInputLayout>
+                                <EditText
+                                    android:id="@+id/editTextHeader"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="@string/text_header"
+                                    android:maxLines="2" />
 
-                    </LinearLayout>
+                            </android.support.design.widget.TextInputLayout>
 
-                </RelativeLayout>
+                        </LinearLayout>
 
-                <android.support.design.widget.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <EditText
-                        android:id="@+id/editTextDescription"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/text_description"
-                        android:maxLines="2" />
-
-                </android.support.design.widget.TextInputLayout>
-
-                <RelativeLayout
-                    android:id="@+id/layoutBody"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    </RelativeLayout>
 
                     <android.support.design.widget.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
                         <EditText
-                            android:id="@+id/editTextBody"
+                            android:id="@+id/editTextDescription"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/text_body"
-                            android:maxLines="4" />
+                            android:hint="@string/text_description"
+                            android:maxLines="2" />
 
                     </android.support.design.widget.TextInputLayout>
 
-                </RelativeLayout>
+                    <RelativeLayout
+                        android:id="@+id/layoutBody"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
-                <LinearLayout
-                    android:id="@+id/layoutFireDate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                        <android.support.design.widget.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                    android:orientation="horizontal">
+                            <EditText
+                                android:id="@+id/editTextBody"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="@string/text_body"
+                                android:maxLines="4" />
 
-                    <android.support.design.widget.TextInputLayout
+                        </android.support.design.widget.TextInputLayout>
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/layoutRegularly"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_margin="5dp">
+
+                        <TextView
+                            android:id="@+id/textViewRegularly"
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/text_regularly"
+                            android:textSize="16dp" />
+
+                        <android.support.v7.widget.SwitchCompat
+                            android:id="@+id/switchRegularly"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginLeft="10dp"
+                            android:layout_toEndOf="@+id/textViewRegularly"
+                            android:layout_toRightOf="@+id/textViewRegularly" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutDayOfWeek"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginLeft="10dp"
+                            android:layout_toEndOf="@id/switchRegularly"
+                            android:layout_toRightOf="@id/switchRegularly"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/dayFirst"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Mn"
+                                android:textAlignment="center"
+                                android:textColor="@color/colorBlack"
+                                android:typeface="serif" />
+
+                            <TextView
+                                android:id="@+id/daySecond"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Mn"
+                                android:textAlignment="center"
+                                android:textColor="@color/colorBlack"
+                                android:typeface="serif" />
+
+                            <TextView
+                                android:id="@+id/dayThird"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Mn"
+                                android:textAlignment="center"
+                                android:textColor="@color/colorBlack"
+                                android:typeface="serif" />
+
+                            <TextView
+                                android:id="@+id/dayFourth"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Mn"
+                                android:textAlignment="center"
+                                android:textColor="@color/colorBlack"
+                                android:typeface="serif" />
+
+                            <TextView
+                                android:id="@+id/dayFifth"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Mn"
+                                android:textAlignment="center"
+                                android:textColor="@color/colorBlack"
+                                android:typeface="serif" />
+
+                            <TextView
+                                android:id="@+id/daySixth"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Mn"
+                                android:textAlignment="center"
+                                android:textColor="@color/colorBlack"
+                                android:typeface="serif" />
+
+                            <TextView
+                                android:id="@+id/daySeventh"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Mn"
+                                android:textAlignment="center"
+                                android:textColor="@color/colorBlack"
+                                android:typeface="serif" />
+
+                        </LinearLayout>
+
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:id="@+id/layoutFireDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1">
+                        android:orientation="horizontal">
 
-                        <EditText
-                            android:id="@+id/editTextFireDate"
+                        <android.support.design.widget.TextInputLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/text_date"
-                            android:maxLines="1" />
+                            android:layout_weight="1">
 
-                    </android.support.design.widget.TextInputLayout>
+                            <EditText
+                                android:id="@+id/editTextFireDate"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="@string/text_date"
+                                android:maxLines="1" />
 
-                    <android.support.design.widget.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1">
+                        </android.support.design.widget.TextInputLayout>
 
-                        <EditText
-                            android:id="@+id/editTextFireTime"
+                        <android.support.design.widget.TextInputLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/text_time"
-                            android:maxLines="1" />
+                            android:layout_weight="1">
 
-                    </android.support.design.widget.TextInputLayout>
+                            <EditText
+                                android:id="@+id/editTextFireTime"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="@string/text_time"
+                                android:maxLines="1" />
+
+                        </android.support.design.widget.TextInputLayout>
+
+                    </LinearLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/layoutRemindOf"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:layout_margin="5dp">
+
+                        <TextView
+                            android:id="@+id/textViewRemindOf"
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/text_remindof"
+                            android:textSize="16dp" />
+
+                        <Spinner
+                            android:id="@+id/spinerRemindOf"
+                            android:layout_width="120dp"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginLeft="10dp"
+                            android:layout_toEndOf="@+id/textViewRemindOf"
+                            android:layout_toRightOf="@+id/textViewRemindOf"
+                            android:entries="@array/remind_of"
+                            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/layoutPriority"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp"
+                        android:layout_margin="5dp">
+
+                        <TextView
+                            android:id="@+id/textViewPriority"
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/text_priority"
+                            android:textSize="16dp" />
+
+                        <android.support.v7.widget.AppCompatRatingBar
+                            android:id="@+id/ratingBarPriority"
+                            style="?android:attr/ratingBarStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            android:layout_toEndOf="@id/textViewPriority"
+                            android:layout_toRightOf="@id/textViewPriority"
+                            android:numStars="5"
+                            android:stepSize="1.0" />
+
+                    </RelativeLayout>
 
                 </LinearLayout>
 
-                <RelativeLayout
-                    android:id="@+id/layoutRemindOf"
-                    android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:layout_margin="5dp">
-
-                    <TextView
-                        android:id="@+id/textViewRemindOf"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:text="@string/text_remindof"
-                        android:textSize="16dp" />
-
-                    <Spinner
-                        android:id="@+id/spinerRemindOf"
-                        android:layout_width="120dp"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginLeft="10dp"
-                        android:layout_toEndOf="@+id/textViewRemindOf"
-                        android:layout_toRightOf="@+id/textViewRemindOf"
-                        android:entries="@array/remind_of"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/layoutPriority"
-                    android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:layout_margin="5dp">
-
-                    <TextView
-                        android:id="@+id/textViewPriority"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:text="@string/text_priority"
-                        android:textSize="16dp" />
-
-                    <android.support.v7.widget.AppCompatRatingBar
-                        android:id="@+id/ratingBarPriority"
-                        style="?android:attr/ratingBarStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="20dp"
-                        android:layout_toEndOf="@id/textViewPriority"
-                        android:layout_toRightOf="@id/textViewPriority"
-                        android:numStars="5"
-                        android:stepSize="1.0" />
-
-                </RelativeLayout>
-
-            </LinearLayout>
+            </ScrollView>
 
         </LinearLayout>
 

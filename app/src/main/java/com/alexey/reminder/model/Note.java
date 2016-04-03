@@ -21,6 +21,8 @@ public class Note {
     /** Not-null value. */
     private java.util.Date timeStamp;
     private java.util.Date fireDate;
+    private Boolean Regularly;
+    private Byte DaysOfWeek;
     private boolean performed;
     private Long remindOf;
     private byte[] imageCut;
@@ -30,14 +32,6 @@ public class Note {
 
     private Bitmap bitmap;
 
-    public Bitmap getBitmap() {
-        return bitmap;
-    }
-
-    public void setBitmap(Bitmap bitmap) {
-        this.bitmap = bitmap;
-    }
-
     public Note() {
     }
 
@@ -45,13 +39,15 @@ public class Note {
         this.uuid = uuid;
     }
 
-    public Note(String uuid, String header, String description, String body, java.util.Date timeStamp, java.util.Date fireDate, boolean performed, Long remindOf, byte[] imageCut, byte[] image, Priority priority, TypeNote typeNote) {
+    public Note(String uuid, String header, String description, String body, java.util.Date timeStamp, java.util.Date fireDate, Boolean Regularly, Byte DaysOfWeek, boolean performed, Long remindOf, byte[] imageCut, byte[] image, Priority priority, TypeNote typeNote) {
         this.uuid = uuid;
         this.header = header;
         this.description = description;
         this.body = body;
         this.timeStamp = timeStamp;
         this.fireDate = fireDate;
+        this.Regularly = Regularly;
+        this.DaysOfWeek = DaysOfWeek;
         this.performed = performed;
         this.remindOf = remindOf;
         this.imageCut = imageCut;
@@ -116,6 +112,22 @@ public class Note {
         this.fireDate = fireDate;
     }
 
+    public Boolean getRegularly() {
+        return Regularly;
+    }
+
+    public void setRegularly(Boolean Regularly) {
+        this.Regularly = Regularly;
+    }
+
+    public Byte getDaysOfWeek() {
+        return DaysOfWeek;
+    }
+
+    public void setDaysOfWeek(Byte DaysOfWeek) {
+        this.DaysOfWeek = DaysOfWeek;
+    }
+
     public boolean getPerformed() {
         return performed;
     }
@@ -164,4 +176,11 @@ public class Note {
         this.typeNote = typeNote;
     }
 
+    public Bitmap getBitmap() {
+        return bitmap;
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        this.bitmap = bitmap;
+    }
 }

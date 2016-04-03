@@ -23,6 +23,10 @@ public class Generator {
 
         note.addDateProperty("fireDate");
 
+        note.addBooleanProperty("Regularly");
+
+        note.addByteProperty("DaysOfWeek");
+
         note.addBooleanProperty("performed").notNull();
 
         note.addLongProperty("remindOf");

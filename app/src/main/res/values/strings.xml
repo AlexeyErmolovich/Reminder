@@ -31,6 +31,8 @@
     <string name="notification_birthday">Do not forget to congratulate on birthday</string>
     <string name="birthday">Birthday</string>
     <string name="todo">To do</string>
+    <string name="text_regularly">Regularly</string>
+    <string name="text_ok">Ok</string>
 
 
     <string-array name="load_image_and_change">

@@ -7,7 +7,6 @@ import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -22,16 +21,15 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.SwitchCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.ContextMenu;
 import android.view.Display;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -47,8 +45,6 @@ import com.alexey.reminder.model.Note;
 import com.alexey.reminder.model.NoteDao;
 import com.alexey.reminder.model.PriorityEnum.Priority;
 import com.alexey.reminder.model.TypeNoteEnum.TypeNote;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -65,17 +61,58 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ChangeNoteActivity extends AppCompatActivity {
 
+    /**
+     * Request code to launch the camera
+     */
     private final int CAMERA_REQUEST = 0;
+    /**
+     * Request code to launch gallery
+     */
     private final int GALLERY_REQUEST = 1;
+    /**
+     * Request code to launch cropping of images
+     */
     private final int CHANGE_IMAGE_REQUEST = 2;
 
-    private boolean draw;
+    /**
+     * Contains information: change or create a new note
+     */
+    private boolean revise;
+    /**
+     * Note
+     */
     private Note note;
+    /**
+     * Database connection
+     */
     private NoteDao noteDao;
+    /**
+     * Calendar: contains fire date for notes
+     */
     private GregorianCalendar calendar;
+    /**
+     * Current activity
+     */
     private AppCompatActivity activity;
+    /**
+     * Standard image for notes
+     */
     private Bitmap bitmapDefault;
+    /**
+     * Current type note
+     */
     private int currentTypeNote;
+    /**
+     * Duration of animation for this activity
+     */
+    private int duration;
+    /**
+     * Each bit of this byte contains information, whether a note executed on the corresponding day of the week
+     */
+    private byte dayOfWeek;
+    /**
+     * Contains the full path of the image
+     */
     private String mCurrentPhotoPath;
 
     private CircleImageView imageView;
@@ -85,13 +122,19 @@ public class ChangeNoteActivity extends AppCompatActivity {
     private EditText editTextBody;
     private EditText editTextDate;
     private EditText editTextTime;
+    private SwitchCompat switchRegularly;
+    private LinearLayout layoutDayOfWeek;
     private Spinner spinnerRemindOf;
     private RatingBar ratingBarPriority;
 
     private LinearLayout layoutFireDate;
     private RelativeLayout layoutRemindOf;
     private RelativeLayout layoutPriority;
+    private RelativeLayout layoutRegularly;
 
+    /**
+     * Time in milliseconds for how much should be reminded of the implementation notes
+     */
     private long[] remindOf = {0, 60000, 300000, 600000, 900000, 12000000, 15000000, 18000000, 27000000, 36000000,
             7200000, 10800000, 14400000, 18000000, 36000000, 540000000, 72000000, 86400000};
 
@@ -111,13 +154,14 @@ public class ChangeNoteActivity extends AppCompatActivity {
         this.calendar = new GregorianCalendar();
 
         if (uuid.equals("")) {
-            draw = false;
-            this.note = new Note(UUID.randomUUID().toString(), "", "", "", null, calendar.getTime(), false, 0l,
+            revise = false;
+            this.note = new Note(UUID.randomUUID().toString(), "", "", "", null, calendar.getTime(), false, Byte.valueOf("0"), false, 0l,
                     new byte[0], new byte[0], Priority.None, TypeNote.Birthday);
         } else {
-            draw = true;
+            revise = true;
             this.note = this.noteDao.load(uuid);
             this.calendar.setTime(this.note.getFireDate());
+            this.dayOfWeek = this.note.getDaysOfWeek();
         }
 
         initToolBar();
@@ -129,23 +173,147 @@ public class ChangeNoteActivity extends AppCompatActivity {
         initEditTextBody();
         initEditTextDate();
         initEditTextTime();
+        initLayoutDayOfWeek();
+        initSwitchRegularly();
         initSpinnerRemindOf();
         inirRatingeBarPriority();
         initLayouts();
         initSpinnerTypeNote();
     }
 
+    private static String getShortDayName(int day) {
+        Calendar c = Calendar.getInstance();
+        c.set(2015, 7, 1, 0, 0, 0);
+        c.add(Calendar.DAY_OF_MONTH, day);
+        String format = String.format("%ta", c);
+        if (format.length() > 3) {
+            format = format.substring(0, 3);
+        }
+        return format;
+    }
+
+    private static String getLongDayName(int day) {
+        Calendar c = Calendar.getInstance();
+        c.set(2015, 7, 1, 0, 0, 0);
+        c.add(Calendar.DAY_OF_MONTH, day);
+        return String.format("%tA", c);
+    }
+
+    private void initLayoutDayOfWeek() {
+        this.layoutDayOfWeek = (LinearLayout) findViewById(R.id.layoutDayOfWeek);
+        final TextView[] daysOfWeek = new TextView[7];
+        final boolean[] daysOfWeekCheck = new boolean[7];
+        final String[] daysOfWeekName = new String[7];
+
+        daysOfWeek[0] = (TextView) findViewById(R.id.dayFirst);
+        daysOfWeek[1] = (TextView) findViewById(R.id.daySecond);
+        daysOfWeek[2] = (TextView) findViewById(R.id.dayThird);
+        daysOfWeek[3] = (TextView) findViewById(R.id.dayFourth);
+        daysOfWeek[4] = (TextView) findViewById(R.id.dayFifth);
+        daysOfWeek[5] = (TextView) findViewById(R.id.daySixth);
+        daysOfWeek[6] = (TextView) findViewById(R.id.daySeventh);
+
+        int firstDay = calendar.getFirstDayOfWeek();
+
+        for (int i = 0; i < 7; i++) {
+            daysOfWeek[i].setText(getShortDayName(i + firstDay));
+            daysOfWeekName[i] = getLongDayName(i + firstDay);
+            byte day = note.getDaysOfWeek();
+            if (firstDay == 2) {
+                day = (byte) ((byte) (day << (i + 1)) >> 7);
+            } else {
+                if (i == 0) {
+                    day = (byte) ((byte) (day << 7) >> 7);
+                } else {
+                    day = (byte) ((byte) (day << i) >> 7);
+                }
+            }
+            if (day == -1) {
+                daysOfWeek[i].setBackgroundColor(getResources().getColor(R.color.colorAccent));
+                daysOfWeekCheck[i] = true;
+            }
+        }
+
+        this.layoutDayOfWeek.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setMultiChoiceItems(daysOfWeekName, daysOfWeekCheck, new DialogInterface.OnMultiChoiceClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                        daysOfWeekCheck[which] = isChecked;
+                        if (isChecked) {
+                            daysOfWeek[which].setBackgroundColor(activity.getResources().getColor(R.color.colorAccent));
+                        } else {
+                            daysOfWeek[which].setBackgroundColor(activity.getResources().getColor(R.color.colorWhite));
+                        }
+                    }
+                });
+                builder.setPositiveButton(getString(R.string.text_ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        byte days = 0;
+                        int firstDay = calendar.getFirstDayOfWeek();
+                        for (int i = 0; i < 7; i++) {
+                            if (daysOfWeekCheck[i]) {
+                                if (firstDay == 2) {
+                                    days = (byte) (days + Math.pow(2, 6 - i));
+                                } else {
+                                    if (i == 0) {
+                                        days = (byte) (days + Math.pow(2, 0));
+                                    } else {
+                                        days = (byte) (days + Math.pow(2, 5 - i));
+                                    }
+                                }
+                            }
+                        }
+                        note.setDaysOfWeek(days);
+                    }
+                });
+                builder.show();
+            }
+        });
+    }
+
+    private void initSwitchRegularly() {
+        this.switchRegularly = (SwitchCompat) findViewById(R.id.switchRegularly);
+        this.switchRegularly.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    editTextDate.setEnabled(false);
+                    editTextDate.setAlpha(0.5f);
+                    layoutDayOfWeek.setEnabled(true);
+                    layoutDayOfWeek.setAlpha(1f);
+                } else {
+                    editTextDate.setEnabled(true);
+                    editTextDate.setAlpha(1f);
+                    layoutDayOfWeek.setEnabled(false);
+                    layoutDayOfWeek.setAlpha(0.5f);
+                }
+                note.setRegularly(isChecked);
+            }
+        });
+        this.switchRegularly.setChecked(this.note.getRegularly());
+        if (this.note.getRegularly()) {
+            editTextDate.setEnabled(false);
+            editTextDate.setAlpha(0.5f);
+        } else {
+            layoutDayOfWeek.setEnabled(false);
+            layoutDayOfWeek.setAlpha(0.5f);
+        }
+    }
+
     private void initLayouts() {
         this.layoutFireDate = (LinearLayout) findViewById(R.id.layoutFireDate);
         this.layoutRemindOf = (RelativeLayout) findViewById(R.id.layoutRemindOf);
         this.layoutPriority = (RelativeLayout) findViewById(R.id.layoutPriority);
+        this.layoutRegularly = (RelativeLayout) findViewById(R.id.layoutRegularly);
     }
 
     private void inirRatingeBarPriority() {
         this.ratingBarPriority = (RatingBar) findViewById(R.id.ratingBarPriority);
-        if (draw) {
-            this.ratingBarPriority.setRating(this.note.getPriority().getValue());
-        }
+        this.ratingBarPriority.setRating(this.note.getPriority().getValue());
     }
 
     private int remindOfPosition(long remindOf) {
@@ -159,15 +327,13 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
     private void initSpinnerRemindOf() {
         this.spinnerRemindOf = (Spinner) findViewById(R.id.spinerRemindOf);
-        if (draw) {
-            this.spinnerRemindOf.setSelection(remindOfPosition(this.note.getRemindOf()));
-        }
+        this.spinnerRemindOf.setSelection(remindOfPosition(this.note.getRemindOf()));
     }
 
     private void initEditTextTime() {
         this.editTextTime = (EditText) findViewById(R.id.editTextFireTime);
         final DateFormat format = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
-        if (draw) {
+        if (revise) {
             this.editTextTime.setText(format.format(this.note.getFireDate()));
         }
         final TimePickerDialog.OnTimeSetListener timeSetListener = new TimePickerDialog.OnTimeSetListener() {
@@ -179,14 +345,20 @@ public class ChangeNoteActivity extends AppCompatActivity {
                 editTextTime.setText(format.format(calendar.getTime()));
                 editTextTime.clearFocus();
             }
-
         };
         this.editTextTime.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
-                    TimePickerDialog pickerDialog = new TimePickerDialog(activity, timeSetListener,
-                            12, 0, true);
+                    Locale aDefault = Locale.getDefault();
+                    TimePickerDialog pickerDialog;
+                    if (aDefault.getCountry().equals("RU")) {
+                        pickerDialog = new TimePickerDialog(activity, timeSetListener,
+                                12, 0, true);
+                    } else {
+                        pickerDialog = new TimePickerDialog(activity, timeSetListener,
+                                12, 0, false);
+                    }
                     pickerDialog.show();
                 }
             }
@@ -215,7 +387,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
     private void initEditTextDate() {
         this.editTextDate = (EditText) findViewById(R.id.editTextFireDate);
         final DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
-        if (draw) {
+        if (revise) {
             this.editTextDate.setText(format.format(this.note.getFireDate()));
         }
         final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
@@ -259,9 +431,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
     private void initEditTextBody() {
         this.editTextBody = (EditText) findViewById(R.id.editTextBody);
-        if (draw) {
-            this.editTextBody.setText(this.note.getBody());
-        }
+        this.editTextBody.setText(this.note.getBody());
         this.editTextBody.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -284,9 +454,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
     private void initEditTextDescription() {
         this.editTextDescription = (EditText) findViewById(R.id.editTextDescription);
-        if (draw) {
-            this.editTextDescription.setText(this.note.getDescription());
-        }
+        this.editTextDescription.setText(this.note.getDescription());
         this.editTextDescription.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -309,9 +477,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
     private void initEditTextHeader() {
         this.editTextHeader = (EditText) findViewById(R.id.editTextHeader);
-        if (draw) {
-            this.editTextHeader.setText(this.note.getHeader());
-        }
+        this.editTextHeader.setText(this.note.getHeader());
         this.editTextHeader.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -334,81 +500,273 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
     private void initSpinnerTypeNote() {
         this.spinnerTypeNote = (Spinner) findViewById(R.id.spinerTypeNote);
+
+        final Display defaultDisplay = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+
+        this.currentTypeNote = -1;
         this.spinnerTypeNote.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == TypeNote.Idea.getValue()) {
-                    Display defaultDisplay = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
 
-                    ObjectAnimator animatorFireDate = ObjectAnimator.ofFloat(layoutFireDate, "translationX", 0f,
-                            defaultDisplay.getWidth());
-                    animatorFireDate.setDuration(500);
+                if (position == TypeNote.Birthday.getValue()) {
+                    if (currentTypeNote == TypeNote.Todo.getValue()) {
+                        ObjectAnimator animatorRegularlyHide = ObjectAnimator.ofFloat(layoutRegularly, "translationX", 0f, defaultDisplay.getWidth());
 
-                    ObjectAnimator animatorRemindOf = ObjectAnimator.ofFloat(layoutRemindOf, "translationX", 0f,
-                            defaultDisplay.getWidth());
-                    animatorRemindOf.setDuration(500);
+                        animatorRegularlyHide.addListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
 
-                    animatorFireDate.addListener(new Animator.AnimatorListener() {
-                        @Override
-                        public void onAnimationStart(Animator animation) {
+                            }
 
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                ObjectAnimator animatorPriorityUp = ObjectAnimator.ofFloat(layoutPriority, "translationY", 0f, -110f);
+                                ObjectAnimator animatorRemindOfUp = ObjectAnimator.ofFloat(layoutRemindOf, "translationY", 0f, -110f);
+                                ObjectAnimator animatorFireDateUp = ObjectAnimator.ofFloat(layoutFireDate, "translationY", 0f, -110f);
+
+                                animatorPriorityUp.setDuration(duration);
+                                animatorRemindOfUp.setDuration(duration);
+                                animatorFireDateUp.setDuration(duration);
+
+                                animatorPriorityUp.start();
+                                animatorRemindOfUp.start();
+                                animatorFireDateUp.start();
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animation) {
+
+                            }
+                        });
+
+                        animatorRegularlyHide.setDuration(duration);
+
+                        animatorRegularlyHide.start();
+
+                        if (note.getRegularly()) {
+                            editTextDate.setEnabled(true);
+                            editTextDate.setAlpha(1f);
+                        }
+                    } else if (currentTypeNote == TypeNote.Idea.getValue()) {
+                        ObjectAnimator animatorPriorityDown = ObjectAnimator.ofFloat(layoutPriority, "translationY", -330f, -110f);
+                        ObjectAnimator animatorFireDateShow = ObjectAnimator.ofFloat(layoutFireDate, "translationY", 0f, -110f);
+                        ObjectAnimator animatorRemindOfShow = ObjectAnimator.ofFloat(layoutRemindOf, "translationY", 0f, -110f);
+
+                        animatorFireDateShow.addListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                ObjectAnimator animatorFireDateShow = ObjectAnimator.ofFloat(layoutFireDate, "translationX", defaultDisplay.getWidth(), 0);
+                                ObjectAnimator animatorRemindOfShow = ObjectAnimator.ofFloat(layoutRemindOf, "translationX", defaultDisplay.getWidth(), 0);
+
+                                animatorFireDateShow.setDuration(duration);
+                                animatorRemindOfShow.setDuration(duration);
+
+                                animatorFireDateShow.start();
+                                animatorRemindOfShow.start();
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animation) {
+
+                            }
+                        });
+
+                        animatorPriorityDown.setDuration(duration);
+                        animatorFireDateShow.setDuration(duration);
+                        animatorRemindOfShow.setDuration(duration);
+
+                        animatorFireDateShow.start();
+                        animatorRemindOfShow.start();
+                        animatorPriorityDown.start();
+
+                        if (note.getRegularly()) {
+                            editTextDate.setEnabled(true);
+                            editTextDate.setAlpha(1f);
+                        }
+                    }
+                } else if (position == TypeNote.Todo.getValue()) {
+                    if (currentTypeNote == TypeNote.Birthday.getValue()) {
+                        ObjectAnimator animatorFireDateDown = ObjectAnimator.ofFloat(layoutFireDate, "translationY", -110f, 0f);
+                        ObjectAnimator animatorRemindOfDown = ObjectAnimator.ofFloat(layoutRemindOf, "translationY", -110f, 0f);
+                        ObjectAnimator animatorPriorityDown = ObjectAnimator.ofFloat(layoutPriority, "translationY", -110f, 0f);
+
+                        animatorFireDateDown.addListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                ObjectAnimator animatorRegularlyShow = ObjectAnimator.ofFloat(layoutRegularly, "translationX", defaultDisplay.getWidth(), 0f);
+                                animatorRegularlyShow.setDuration(duration);
+                                animatorRegularlyShow.start();
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animation) {
+
+                            }
+                        });
+
+                        animatorFireDateDown.setDuration(duration);
+                        animatorRemindOfDown.setDuration(duration);
+                        animatorPriorityDown.setDuration(duration);
+
+                        animatorFireDateDown.start();
+                        animatorRemindOfDown.start();
+                        animatorPriorityDown.start();
+
+                        if (note.getRegularly()) {
+                            editTextDate.setEnabled(false);
+                            editTextDate.setAlpha(0.5f);
                         }
 
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            ObjectAnimator animatorPriority = ObjectAnimator.ofFloat(layoutPriority, "translationY", 0f, -220f);
-                            animatorPriority.setDuration(500);
-                            animatorPriority.start();
+                    } else if (currentTypeNote == TypeNote.Idea.getValue()) {
+                        ObjectAnimator animatorPriorityDown = ObjectAnimator.ofFloat(layoutPriority, "translationY", -330f, 0f);
+                        ObjectAnimator animatorFireDateDown = ObjectAnimator.ofFloat(layoutFireDate, "translationY", -110f, 0);
+                        ObjectAnimator animatorRemindOfDown = ObjectAnimator.ofFloat(layoutRemindOf, "translationY", -110f, 0);
+
+                        animatorFireDateDown.addListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                ObjectAnimator animatorRegularlyShow = ObjectAnimator.ofFloat(layoutRegularly, "translationX", defaultDisplay.getWidth(), 0f);
+                                ObjectAnimator animatorFireDateShow = ObjectAnimator.ofFloat(layoutFireDate, "translationX", defaultDisplay.getWidth(), 0);
+                                ObjectAnimator animatorRemindOfShow = ObjectAnimator.ofFloat(layoutRemindOf, "translationX", defaultDisplay.getWidth(), 0);
+
+                                animatorRegularlyShow.setDuration(duration);
+                                animatorFireDateShow.setDuration(duration);
+                                animatorRemindOfShow.setDuration(duration);
+
+                                animatorFireDateShow.start();
+                                animatorRemindOfShow.start();
+                                animatorRegularlyShow.start();
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animation) {
+
+                            }
+                        });
+
+                        animatorPriorityDown.setDuration(duration);
+                        animatorFireDateDown.setDuration(duration);
+                        animatorRemindOfDown.setDuration(duration);
+
+                        animatorPriorityDown.start();
+                        animatorFireDateDown.start();
+                        animatorRemindOfDown.start();
+
+                        if (note.getRegularly()) {
+                            editTextDate.setEnabled(false);
+                            editTextDate.setAlpha(0.5f);
                         }
+                    }
+                } else if (position == TypeNote.Idea.getValue()) {
+                    if (currentTypeNote == TypeNote.Birthday.getValue()) {
+                        ObjectAnimator animatorFireDateHide = ObjectAnimator.ofFloat(layoutFireDate, "translationX", 0f, defaultDisplay.getWidth());
+                        ObjectAnimator animatorRemindOfHide = ObjectAnimator.ofFloat(layoutRemindOf, "translationX", 0f, defaultDisplay.getWidth());
 
-                        @Override
-                        public void onAnimationCancel(Animator animation) {
+                        animatorFireDateHide.addListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
 
-                        }
+                            }
 
-                        @Override
-                        public void onAnimationRepeat(Animator animation) {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                ObjectAnimator animatorPriorityUp = ObjectAnimator.ofFloat(layoutPriority, "translationY", -110f, -330f);
 
-                        }
-                    });
-                    animatorFireDate.start();
-                    animatorRemindOf.start();
-                } else if (currentTypeNote == TypeNote.Idea.getValue()) {
-                    ObjectAnimator animatorPriority = ObjectAnimator.ofFloat(layoutPriority, "translationY", -220f, 0f);
-                    animatorPriority.setDuration(500);
-                    animatorPriority.addListener(new Animator.AnimatorListener() {
-                        @Override
-                        public void onAnimationStart(Animator animation) {
+                                animatorPriorityUp.setDuration(duration);
 
-                        }
+                                animatorPriorityUp.start();
+                            }
 
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            Display defaultDisplay = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
 
-                            ObjectAnimator animatorFireDate = ObjectAnimator.ofFloat(layoutFireDate, "translationX",
-                                    defaultDisplay.getWidth(), 0);
-                            animatorFireDate.setDuration(500);
+                            }
 
-                            ObjectAnimator animatorRemindOf = ObjectAnimator.ofFloat(layoutRemindOf, "translationX",
-                                    defaultDisplay.getWidth(), 0);
-                            animatorRemindOf.setDuration(500);
+                            @Override
+                            public void onAnimationRepeat(Animator animation) {
 
-                            animatorFireDate.start();
-                            animatorRemindOf.start();
-                        }
+                            }
+                        });
 
-                        @Override
-                        public void onAnimationCancel(Animator animation) {
+                        animatorFireDateHide.setDuration(duration);
+                        animatorRemindOfHide.setDuration(duration);
 
-                        }
+                        animatorFireDateHide.start();
+                        animatorRemindOfHide.start();
+                    } else if (currentTypeNote == TypeNote.Todo.getValue()) {
+                        ObjectAnimator animatorFireDateHide = ObjectAnimator.ofFloat(layoutFireDate, "translationX", 0f, defaultDisplay.getWidth());
+                        ObjectAnimator animatorRemindOfHide = ObjectAnimator.ofFloat(layoutRemindOf, "translationX", 0f, defaultDisplay.getWidth());
+                        ObjectAnimator animatorRegularlyHide = ObjectAnimator.ofFloat(layoutRegularly, "translationX", 0f, defaultDisplay.getWidth());
 
-                        @Override
-                        public void onAnimationRepeat(Animator animation) {
+                        animatorRegularlyHide.addListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
 
-                        }
-                    });
-                    animatorPriority.start();
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                ObjectAnimator animatorPriorityUp = ObjectAnimator.ofFloat(layoutPriority, "translationY", 0f, -330f);
+
+                                animatorPriorityUp.setDuration(duration);
+
+                                animatorPriorityUp.start();
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animation) {
+
+                            }
+                        });
+
+                        animatorRegularlyHide.setDuration(duration);
+                        animatorFireDateHide.setDuration(duration);
+                        animatorRemindOfHide.setDuration(duration);
+
+                        animatorRegularlyHide.start();
+                        animatorFireDateHide.start();
+                        animatorRemindOfHide.start();
+                    }
                 }
                 currentTypeNote = position;
             }
@@ -418,18 +776,53 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
             }
         });
-        if(this.note.getTypeNote() == TypeNote.Idea){
 
+        this.duration = 0;
+        if (this.note.getTypeNote() == TypeNote.Idea) {
+            ObjectAnimator animatorFireDateHide = ObjectAnimator.ofFloat(layoutFireDate, "translationX", 0f, defaultDisplay.getWidth());
+            ObjectAnimator animatorRemindOfHide = ObjectAnimator.ofFloat(layoutRemindOf, "translationX", 0f, defaultDisplay.getWidth());
+            ObjectAnimator animatorRegularlyHide = ObjectAnimator.ofFloat(layoutRegularly, "translationX", 0f, defaultDisplay.getWidth());
+            ObjectAnimator animatorPriorityUp = ObjectAnimator.ofFloat(layoutPriority, "translationY", 0f, -330f);
+            ObjectAnimator animatorFireDateUp = ObjectAnimator.ofFloat(layoutFireDate, "translationY", 0, -110f);
+            ObjectAnimator animatorRemindOfUp = ObjectAnimator.ofFloat(layoutRemindOf, "translationY", 0, -110f);
+
+            animatorPriorityUp.setDuration(duration);
+            animatorRegularlyHide.setDuration(duration);
+            animatorFireDateHide.setDuration(duration);
+            animatorRemindOfHide.setDuration(duration);
+            animatorFireDateUp.setDuration(duration);
+            animatorRemindOfUp.setDuration(duration);
+
+            animatorPriorityUp.start();
+            animatorRegularlyHide.start();
+            animatorFireDateHide.start();
+            animatorRemindOfHide.start();
+            animatorFireDateUp.start();
+            animatorRemindOfUp.start();
+        } else if (this.note.getTypeNote() == TypeNote.Birthday) {
+            ObjectAnimator animatorRegularlyHide = ObjectAnimator.ofFloat(layoutRegularly, "translationX", 0f, defaultDisplay.getWidth());
+            ObjectAnimator animatorPriorityUp = ObjectAnimator.ofFloat(layoutPriority, "translationY", 0f, -110f);
+            ObjectAnimator animatorRemindOfUp = ObjectAnimator.ofFloat(layoutRemindOf, "translationY", 0f, -110f);
+            ObjectAnimator animatorFireDateUp = ObjectAnimator.ofFloat(layoutFireDate, "translationY", 0f, -110f);
+
+            animatorPriorityUp.setDuration(duration);
+            animatorRemindOfUp.setDuration(duration);
+            animatorFireDateUp.setDuration(duration);
+            animatorRegularlyHide.setDuration(duration);
+
+            animatorPriorityUp.start();
+            animatorRemindOfUp.start();
+            animatorFireDateUp.start();
+            animatorRegularlyHide.start();
         }
-        if (draw) {
-            this.spinnerTypeNote.setSelection(this.note.getTypeNote().getValue(), true);
-        }
+        this.duration = 500;
+        this.spinnerTypeNote.setSelection(this.note.getTypeNote().getValue(), true);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Bitmap bitmap = null;
+        Bitmap bitmap;
         if (resultCode == RESULT_OK) {
             if (requestCode == GALLERY_REQUEST) {
                 Uri uriImage = data.getData();
@@ -453,8 +846,6 @@ public class ChangeNoteActivity extends AppCompatActivity {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
         File image = new File(Environment.getExternalStorageDirectory(),
                 imageFileName + ".jpg");
 
@@ -513,9 +904,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 if (which == 0) {
                     Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//                     Ensure that there's a camera activity to handle the intent
                     if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-//                         Create the File where the photo should go
                         File photoFile = null;
                         try {
                             photoFile = createImageFile();
@@ -576,8 +965,9 @@ public class ChangeNoteActivity extends AppCompatActivity {
                 Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
                 int typeNote = spinnerTypeNote.getSelectedItemPosition();
                 String header = editTextHeader.getText().toString().trim();
-                String desxription = editTextDescription.getText().toString().trim();
+                String description = editTextDescription.getText().toString().trim();
                 String body = editTextBody.getText().toString().trim();
+                boolean regularly = switchRegularly.isChecked();
                 String date = editTextDate.getText().toString().trim();
                 String time = editTextTime.getText().toString().trim();
                 int idRemindOf = spinnerRemindOf.getSelectedItemPosition();
@@ -587,7 +977,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
                     save = false;
                     editTextHeader.setError(getString(R.string.text_error_header));
                 }
-                if (desxription.length() == 0) {
+                if (description.length() == 0) {
                     save = false;
                     editTextDescription.setError(getString(R.string.text_error_description));
                 }
@@ -596,9 +986,18 @@ public class ChangeNoteActivity extends AppCompatActivity {
                     editTextBody.setError(getString(R.string.text_error_body));
                 }
                 if (typeNote != TypeNote.Idea.getValue()) {
-                    if (date.length() == 0) {
-                        save = false;
-                        editTextDate.setError(getString(R.string.text_error_date));
+                    if (typeNote == TypeNote.Todo.getValue()) {
+                        if (!regularly) {
+                            if (date.length() == 0) {
+                                save = false;
+                                editTextDate.setError(getString(R.string.text_error_date));
+                            }
+                        }
+                    } else {
+                        if (date.length() == 0) {
+                            save = false;
+                            editTextDate.setError(getString(R.string.text_error_date));
+                        }
                     }
                     if (time.length() == 0) {
                         save = false;
@@ -606,10 +1005,22 @@ public class ChangeNoteActivity extends AppCompatActivity {
                     }
                 }
                 if (save) {
-                    if (calendar.getTimeInMillis() < note.getFireDate().getTime()) {
-                        note.setPerformed(true);
-                    } else {
-                        note.setPerformed(false);
+                    if (typeNote == TypeNote.Birthday.getValue()) {
+                        if (note.getTimeStamp().getTime() > note.getFireDate().getTime()) {
+                            note.setPerformed(true);
+                        } else {
+                            note.setPerformed(false);
+                        }
+                    } else if (typeNote == TypeNote.Todo.getValue()) {
+                        if (regularly) {
+                            note.setPerformed(false);
+                        } else {
+                            if (note.getTimeStamp().getTime() > note.getFireDate().getTime()) {
+                                note.setPerformed(true);
+                            } else {
+                                note.setPerformed(false);
+                            }
+                        }
                     }
                     if (bitmapDefault.equals(bitmap)) {
                         note.setImage(new byte[0]);
@@ -624,13 +1035,14 @@ public class ChangeNoteActivity extends AppCompatActivity {
                     }
                     note.setTypeNote(TypeNote.getValue(typeNote));
                     note.setHeader(header);
-                    note.setDescription(desxription);
+                    note.setDescription(description);
                     note.setBody(body);
+                    note.setRegularly(regularly);
                     note.setFireDate(calendar.getTime());
                     note.setTimeStamp(new GregorianCalendar().getTime());
                     note.setRemindOf(remindOf[idRemindOf]);
                     note.setPriority(Priority.getValue(priority));
-                    if (draw) {
+                    if (revise) {
                         noteDao.update(note);
                     } else {
                         noteDao.insert(note);
@@ -645,7 +1057,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
     }
 
     private void initAlarmNotification() {
-        if (note.getTypeNote() != TypeNote.Idea) {
+        if (note.getTypeNote() == TypeNote.Birthday) {
             if (!note.getPerformed()) {
                 Intent alarmIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
                 alarmIntent.putExtra("NoteUUID", note.getUuid());
@@ -658,6 +1070,71 @@ public class ChangeNoteActivity extends AppCompatActivity {
                 } else {
                     triggerAtMillis = note.getFireDate().getTime() - note.getRemindOf();
                     alarmIntent.putExtra("remind", true);
+                }
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), note.getUuid().hashCode(), alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+            }
+        } else if (note.getTypeNote() == TypeNote.Todo) {
+            if (!note.getPerformed()) {
+                Intent alarmIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
+                alarmIntent.putExtra("NoteUUID", note.getUuid());
+
+                final int delay = 60000;
+                long triggerAtMillis;
+                if (note.getRegularly()) {
+                    boolean[] daysOfWeekCheck = new boolean[7];
+                    GregorianCalendar calendar = new GregorianCalendar();
+                    calendar.set(Calendar.HOUR_OF_DAY, note.getFireDate().getHours());
+                    calendar.set(Calendar.MINUTE, note.getFireDate().getMinutes());
+                    calendar.set(Calendar.SECOND, note.getFireDate().getSeconds());
+                    int currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 2;
+                    if (currentDayOfWeek < 0) {
+                        currentDayOfWeek = 6;
+                    }
+                    for (int i = 0; i < 7; i++) {
+                        byte day = note.getDaysOfWeek();
+                        day = (byte) ((byte) (day << (i + 1)) >> 7);
+                        if (day == -1) {
+                            daysOfWeekCheck[i] = true;
+                        }
+                        if (i >= currentDayOfWeek) {
+                            if (daysOfWeekCheck[i] && note.getTimeStamp().getTime() < calendar.getTimeInMillis()) {
+                                break;
+                            } else {
+                                calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
+                            }
+                        }
+                        if (i == 6) {
+                            for (int j = 0; i < currentDayOfWeek; j++) {
+                                if (daysOfWeekCheck[j]) {
+                                    break;
+                                } else {
+                                    calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
+                                }
+                            }
+                        }
+                    }
+
+                    triggerAtMillis = calendar.getTimeInMillis() - note.getRemindOf() - delay;
+                    if (triggerAtMillis < note.getTimeStamp().getTime()) {
+                        triggerAtMillis = calendar.getTimeInMillis();
+                        alarmIntent.putExtra("remind", false);
+                    } else {
+                        triggerAtMillis = calendar.getTimeInMillis() - note.getRemindOf();
+                        alarmIntent.putExtra("remind", true);
+                    }
+
+                } else {
+                    triggerAtMillis = note.getFireDate().getTime() - note.getRemindOf() - delay;
+                    if (triggerAtMillis < note.getTimeStamp().getTime()) {
+                        triggerAtMillis = note.getFireDate().getTime();
+                        alarmIntent.putExtra("remind", false);
+                    } else {
+                        triggerAtMillis = note.getFireDate().getTime() - note.getRemindOf();
+                        alarmIntent.putExtra("remind", true);
+                    }
                 }
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), note.getUuid().hashCode(), alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -680,7 +1157,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void initToolBar() {
         TextView title = (TextView) findViewById(R.id.toolBarTitle);
-        if (draw) {
+        if (revise) {
             title.setText(R.string.revise_note);
         } else {
             title.setText(R.string.new_note);
@@ -698,6 +1175,8 @@ public class ChangeNoteActivity extends AppCompatActivity {
         int idRemindOf = spinnerRemindOf.getSelectedItemPosition();
         float priority = ratingBarPriority.getRating();
 
+        boolean regularly = switchRegularly.isChecked();
+
         if (typeNote != note.getTypeNote().getValue()) {
             exit = false;
         } else if (!header.equals(note.getHeader())) {
@@ -710,28 +1189,40 @@ public class ChangeNoteActivity extends AppCompatActivity {
             exit = false;
         }
         if (typeNote != TypeNote.Idea.getValue()) {
-            if (calendar.getTimeInMillis() != note.getFireDate().getTime()) {
-                exit = false;
-            } else if (remindOf[idRemindOf] != note.getRemindOf()) {
+            if (remindOf[idRemindOf] != note.getRemindOf()) {
                 exit = false;
             }
-        }
-
-        if (!exit) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(getString(R.string.question_save));
-            builder.setNegativeButton(getString(R.string.text_no), null);
-            builder.setPositiveButton(getString(R.string.text_yes), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    setResult(RESULT_CANCELED);
-                    finish();
+            if (typeNote == TypeNote.Todo.getValue()) {
+                if (regularly) {
+                    if (this.note.getDaysOfWeek() != this.dayOfWeek) {
+                        exit = false;
+                    }
+                } else {
+                    if (calendar.getTimeInMillis() != note.getFireDate().getTime()) {
+                        exit = false;
+                    }
                 }
-            });
-            builder.create().show();
-        } else {
-            finish();
+            } else {
+                if (calendar.getTimeInMillis() != note.getFireDate().getTime()) {
+                    exit = false;
+                }
+            }
+
+            if (!exit) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(getString(R.string.question_save));
+                builder.setNegativeButton(getString(R.string.text_no), null);
+                builder.setPositiveButton(getString(R.string.text_yes), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setResult(RESULT_CANCELED);
+                        finish();
+                    }
+                });
+                builder.create().show();
+            } else {
+                finish();
+            }
         }
     }
-
 }
