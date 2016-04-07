@@ -8,11 +8,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+
+
         <LinearLayout
             android:id="@+id/containerItemListView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/colorWhite"
+            android:animateLayoutChanges="true"
             android:orientation="vertical">
 
             <RelativeLayout
@@ -59,7 +62,7 @@
                             android:id="@+id/textViewDescription"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:alpha="0.5"
+                            android:alpha="0.75"
                             android:maxLines="3"
                             android:text="@string/text_description"
                             android:textColor="@color/colorBlack"

@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
-import android.os.SystemClock;
 
 import com.alexey.reminder.model.DaoMaster;
 import com.alexey.reminder.model.DaoSession;
@@ -18,6 +17,8 @@ import com.alexey.reminder.model.NoteDao;
 import com.alexey.reminder.model.TypeNoteEnum.TypeNote;
 
 import java.text.DateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 
 /**
@@ -36,24 +37,11 @@ public class AlarmReceiver extends BroadcastReceiver {
         NoteDao noteDao = session.getNoteDao();
 
         Note note = noteDao.load(uuid);
-        String typeNote = null;
-        String textTicket = null;
-
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         Intent intentJump = new Intent(context, MainActivity.class);
         intentJump.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intentJump, Intent.FILL_IN_ACTION);
-
-
-        if (note.getTypeNote() == TypeNote.Birthday) {
-            typeNote = context.getString(R.string.birthday);
-            textTicket = context.getString(R.string.notification_birthday);
-        }
-        if (note.getTypeNote() == TypeNote.Todo) {
-            typeNote = context.getString(R.string.todo);
-            textTicket = context.getString(R.string.notification_todo);
-        }
 
         Notification.Builder builder = new Notification.Builder(context);
 
@@ -62,10 +50,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setLargeIcon(BitmapFactory.decodeByteArray(note.getImage(), 0, note.getImage().length))
                 .setWhen(System.currentTimeMillis())
                 .setAutoCancel(true)
-                .setTicker(textTicket)
-                .setContentInfo(typeNote)
                 .setContentTitle(note.getHeader());
-
 
         if (remindOf) {
             DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
@@ -76,21 +61,104 @@ public class AlarmReceiver extends BroadcastReceiver {
             builder.setContentText(note.getDescription());
         }
 
+        if (note.getTypeNote() == TypeNote.Birthday) {
+            builder.setTicker(context.getString(R.string.notification_birthday))
+                    .setContentInfo(context.getString(R.string.birthday));
+
+            if (remindOf) {
+                initAlarmManagerForNote(context, note, note.getFireDate().getTime(), false);
+            } else {
+                note.setPerformed(true);
+                noteDao.update(note);
+            }
+
+        } else if (note.getTypeNote() == TypeNote.Todo) {
+            if (note.getRegularly()) {
+
+                builder.setTicker(context.getString(R.string.notification_todo))
+                        .setContentInfo(context.getString(R.string.todo));
+
+                final int delay = 60000;
+                boolean remind;
+                long triggerAtMillis;
+                boolean[] daysOfWeekCheck = new boolean[7];
+                GregorianCalendar calendar = new GregorianCalendar();
+                calendar.set(Calendar.HOUR_OF_DAY, note.getFireDate().getHours());
+                calendar.set(Calendar.MINUTE, note.getFireDate().getMinutes());
+                calendar.set(Calendar.SECOND, note.getFireDate().getSeconds());
+                int currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 2;
+                if (currentDayOfWeek < 0) {
+                    currentDayOfWeek = 6;
+                }
+                for (int i = 0; i < 7; i++) {
+                    byte day = note.getDaysOfWeek();
+                    day = (byte) ((byte) (day << (i + 1)) >> 7);
+                    if (day == -1) {
+                        daysOfWeekCheck[i] = true;
+                    }
+                    if (i >= currentDayOfWeek) {
+                        if (daysOfWeekCheck[i] && System.currentTimeMillis() < calendar.getTimeInMillis()) {
+                            break;
+                        } else {
+                            calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
+                        }
+                    }
+                    if (i == 6) {
+                        for (int j = 0; i < currentDayOfWeek; j++) {
+                            if (daysOfWeekCheck[j]) {
+                                break;
+                            } else {
+                                calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
+                            }
+                        }
+                    }
+                }
+
+                triggerAtMillis = calendar.getTimeInMillis() - note.getRemindOf() - delay;
+                if (triggerAtMillis < System.currentTimeMillis()) {
+                    triggerAtMillis = calendar.getTimeInMillis();
+                    remind = false;
+                } else {
+                    triggerAtMillis = calendar.getTimeInMillis() - note.getRemindOf();
+                    remind = true;
+                }
+
+                if (remindOf) {
+                    DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
+                    DateFormat timeFormat = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
+                    builder.setContentText(dateFormat.format(calendar.getTime()) +
+                            " " + timeFormat.format(calendar.getTime()));
+                }
+                if (remindOf) {
+                    initAlarmManagerForNote(context, note, triggerAtMillis, remind);
+                } else {
+                    initAlarmManagerForNote(context, note, triggerAtMillis, remind);
+                }
+            } else {
+
+                builder.setTicker(context.getString(R.string.notification_todo))
+                        .setContentInfo(context.getString(R.string.todo));
+
+                if (remindOf) {
+                    initAlarmManagerForNote(context, note, note.getFireDate().getTime(), false);
+                } else {
+                    note.setPerformed(true);
+                    noteDao.update(note);
+                }
+            }
+        }
         Notification notification = builder.build();
         notification.defaults = Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE;
         manager.notify(note.getUuid().hashCode(), notification);
+    }
 
-        if (remindOf) {
-            Intent alarmIntent = new Intent(context, AlarmReceiver.class);
-            alarmIntent.putExtra("NoteUUID", note.getUuid());
-            alarmIntent.putExtra("remind", false);
-            PendingIntent pendingAlarm = PendingIntent.getBroadcast(context, note.getUuid().hashCode(), alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+    private void initAlarmManagerForNote(Context context, Note note, long time, boolean remind) {
+        Intent alarmIntent = new Intent(context, AlarmReceiver.class);
+        alarmIntent.putExtra("NoteUUID", note.getUuid());
+        alarmIntent.putExtra("remind", remind);
+        PendingIntent pendingAlarm = PendingIntent.getBroadcast(context, note.getUuid().hashCode(), alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
-            alarmManager.set(AlarmManager.RTC_WAKEUP, note.getFireDate().getTime(), pendingAlarm);
-        } else {
-            note.setPerformed(true);
-            noteDao.update(note);
-        }
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, time, pendingAlarm);
     }
 }

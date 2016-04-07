@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutDownRegularlyDate"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <View
+        android:id="@+id/line"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="5dp"
+        android:background="@color/colorGrey" />
+
+    <TextView
+        android:id="@+id/textViewBody"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:alpha="0.75"
+        android:text="@string/text_description"
+        android:textColor="@color/colorBlack" />
+
+    <include layout="@layout/days_of_week"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" />
+
+    <RelativeLayout
+        android:id="@+id/layoutTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.75"
+            android:maxLines="3"
+            android:layout_alignParentLeft="true"
+            android:text="@string/text_time"
+            android:textColor="@color/colorBlack" />
+
+        <TextView
+            android:id="@+id/textViewTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.75"
+            android:maxLines="3"
+            android:layout_alignParentRight="true"
+            android:text="@string/text_time"
+            android:textColor="@color/colorBlack" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/layoutRemindOf"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.75"
+            android:maxLines="3"
+            android:layout_alignParentLeft="true"
+            android:text="@string/text_remindof"
+            android:textColor="@color/colorBlack" />
+
+        <TextView
+            android:id="@+id/textViewRemindOf"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.75"
+            android:maxLines="3"
+            android:layout_alignParentRight="true"
+            android:text="@string/text_remindof"
+            android:textColor="@color/colorBlack" />
+
+    </RelativeLayout>
+
+    <android.support.v7.widget.AppCompatRatingBar
+        android:id="@+id/smallRatingBar"
+        style="?android:attr/ratingBarStyleSmall"
+        android:layout_margin="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:numStars="5"
+        android:stepSize="1.0" />
+
+</LinearLayout>

@@ -34,7 +34,7 @@
         android:layout_toLeftOf="@id/toolBarSave"
         android:layout_toRightOf="@id/toolBarCancel"
         android:maxLines="1"
-        android:text="Cropper"
+        android:text=""
         android:textAlignment="center"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@color/colorWhite"

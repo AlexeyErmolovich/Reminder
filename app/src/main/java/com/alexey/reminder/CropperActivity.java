@@ -7,9 +7,11 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
@@ -21,8 +23,8 @@ import java.io.ByteArrayOutputStream;
 
 public class CropperActivity extends AppCompatActivity {
 
-    private int MAX_WIDTH = 1000;
-    private int MAX_HEIGHT = 1000;
+    private int MAX_WIDTH;
+    private int MAX_HEIGHT;
 
     private int leftCrop;
     private int topCrop;
@@ -71,8 +73,8 @@ public class CropperActivity extends AppCompatActivity {
                     ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
                     layoutParams.width = bitmapOriginal.getWidth();
                     layoutParams.height = bitmapOriginal.getHeight();
-                    zoomHeight = layoutParams.height / 100;
-                    zoomWidth = layoutParams.width / 100;
+                    zoomHeight = layoutParams.height / 90;
+                    zoomWidth = layoutParams.width / 90;
                     imageView.setLayoutParams(layoutParams);
                 } else {
                     start();
@@ -114,6 +116,9 @@ public class CropperActivity extends AppCompatActivity {
 
     private void initImageView(Bitmap bitmap) {
         imageView = (ImageView) findViewById(R.id.imageOriginal);
+        Display defaultDisplay = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+        MAX_WIDTH = defaultDisplay.getWidth();
+        MAX_HEIGHT = defaultDisplay.getHeight();
         float zoomScale = Math.min(((float) MAX_WIDTH / bitmap.getWidth()), ((float) MAX_HEIGHT / bitmap.getHeight()));
         Matrix matrix = new Matrix();
         matrix.postScale(zoomScale, zoomScale);

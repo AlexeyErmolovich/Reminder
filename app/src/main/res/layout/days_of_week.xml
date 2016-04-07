@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutDayOfWeek"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerVertical="true"
+    android:layout_marginBottom="5dp"
+    android:orientation="horizontal">
+
+    <ToggleButton
+        android:id="@+id/dayFirst"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:checked="false"
+        android:textColor="@color/colorBlack"
+        style="@style/Widget.Button.Toggle"
+        android:textSize="12dp"
+        android:typeface="serif" />
+
+    <ToggleButton
+        android:id="@+id/daySecond"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:checked="false"
+        style="@style/Widget.Button.Toggle"
+        android:textColor="@color/colorBlack"
+        android:textSize="12dp"
+        android:typeface="serif" />
+
+    <ToggleButton
+        android:id="@+id/dayThird"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:checked="false"
+        style="@style/Widget.Button.Toggle"
+        android:textColor="@color/colorBlack"
+        android:textSize="12dp"
+        android:typeface="serif" />
+
+    <ToggleButton
+        android:id="@+id/dayFourth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:checked="false"
+        style="@style/Widget.Button.Toggle"
+        android:textColor="@color/colorBlack"
+        android:textSize="12dp"
+        android:typeface="serif" />
+
+    <ToggleButton
+        android:id="@+id/dayFifth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:checked="false"
+        style="@style/Widget.Button.Toggle"
+        android:textColor="@color/colorBlack"
+        android:textSize="12dp"
+        android:typeface="serif" />
+
+    <ToggleButton
+        android:id="@+id/daySixth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:checked="false"
+        style="@style/Widget.Button.Toggle"
+        android:textColor="@color/colorBlack"
+        android:textSize="12dp"
+        android:typeface="serif" />
+
+    <ToggleButton
+        android:id="@+id/daySeventh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:checked="false"
+        style="@style/Widget.Button.Toggle"
+        android:textColor="@color/colorBlack"
+        android:textSize="12dp"
+        android:typeface="serif" />
+
+</LinearLayout>

@@ -31,6 +31,7 @@ public class Note {
     private TypeNote typeNote;
 
     private Bitmap bitmap;
+    private boolean showInfo;
 
     public Note() {
     }
@@ -182,5 +183,13 @@ public class Note {
 
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
+    }
+
+    public boolean isShowInfo() {
+        return showInfo;
+    }
+
+    public void setShowInfo(boolean showInfo) {
+        this.showInfo = showInfo;
     }
 }

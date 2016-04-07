@@ -1,6 +1,5 @@
 package com.alexey.reminder;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -44,17 +43,33 @@ import java.util.UUID;
 /**
  * Created by Alexey on 21.03.2016.
  */
-public class NoteAdapter extends BaseAdapter {
+public class NotesAdapter extends BaseAdapter {
+    @Override
+    public int getCount() {
+        return 0;
+    }
 
-    private AppCompatActivity activity;
+    @Override
+    public Object getItem(int position) {
+        return null;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        return null;
+    }
+
+/*    private AppCompatActivity activity;
     private ProgressBar progressBar;
     private List<Note> noteList;
     private NoteDao noteDao;
     private LayoutInflater inflater;
     private boolean update;
-
-    private long[] remindOf = {0, 60000, 300000, 600000, 900000, 1200000, 1500000, 1800000, 2700000, 3600000,
-            7200000, 10800000, 14400000, 18000000, 36000000, 540000000, 72000000, 86400000};
 
     private Comparator<Note> comparatorNote = new Comparator<Note>() {
 
@@ -77,7 +92,7 @@ public class NoteAdapter extends BaseAdapter {
     };
 
 
-    public NoteAdapter(AppCompatActivity activity) {
+    public NotesAdapter(AppCompatActivity activity) {
         this.activity = activity;
         this.inflater = (LayoutInflater) this.activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.progressBar = (ProgressBar) activity.findViewById(R.id.progress);
@@ -171,10 +186,16 @@ public class NoteAdapter extends BaseAdapter {
         RelativeLayout layoutTypeNote;
         TextView textViewTypeNote;
 
-        View currentView;
-        View itemDownBody;
-        View itemDownDate;
-        View itemDownRegularlyDate;
+        View viewLine;
+        TextView textViewBody;
+        RelativeLayout layoutDate;
+        TextView textViewDate;
+        LinearLayout layoutDayOfWeek;
+        RelativeLayout layoutTime;
+        TextView textViewTime;
+        RelativeLayout layoutRemindOf;
+        TextView textViewRemindOf;
+        AppCompatRatingBar ratingBar;
 
         int closed;
         int opened;
@@ -231,8 +252,6 @@ public class NoteAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 if (note.isShowInfo()) {
-                    holder.opened = holder.currentView.getHeight() -12;
-                    holder.layoutItemListView.setMinimumHeight(holder.opened);
                     removeViewInItem(holder);
                     note.setShowInfo(false);
                 } else {
@@ -241,6 +260,7 @@ public class NoteAdapter extends BaseAdapter {
                 }
             }
         });
+
         holder.textViewHeader.setText(note.getHeader());
         holder.textViewDescription.setText(note.getDescription());
 
@@ -256,99 +276,72 @@ public class NoteAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private void initViewDown(final ViewHolder holder, Note note) {
+    private void initViewDown(ViewHolder holder, Note note) {
         try {
-            if (note.getTypeNote() == TypeNote.Idea) {
-                initViewDownBody(holder, note);
-            } else if (note.getTypeNote() == TypeNote.Birthday) {
-                initViewDownDate(holder, note);
+            holder.layoutItemListView.addView(holder.viewLine, holder.layoutItemListView.getChildCount());
+            if (!note.getBody().isEmpty()) {
+                holder.layoutItemListView.addView(holder.textViewBody, holder.layoutItemListView.getChildCount());
+                holder.textViewBody.setText(note.getBody());
+            }
+
+            if (note.getTypeNote() == TypeNote.Birthday) {
+                holder.layoutItemListView.addView(holder.layoutDate);
+                holder.layoutItemListView.addView(holder.layoutTime);
+                DateFormat formatDate = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
+                DateFormat formatTime = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
+                holder.textViewDate.setText(formatDate.format(note.getFireDate()));
+                holder.textViewTime.setText(formatTime.format(note.getFireDate()));
             } else if (note.getTypeNote() == TypeNote.Todo) {
                 if (note.getRegularly()) {
-                    initViewDownRegularlyDate(holder, note);
+                    holder.layoutItemListView.addView(holder.layoutDayOfWeek);
+                    ToggleButton[] daysOfWeek = new ToggleButton[7];
+
+                    daysOfWeek[0] = (ToggleButton) holder.layoutDayOfWeek.findViewById(R.id.dayFirst);
+                    daysOfWeek[1] = (ToggleButton) holder.layoutDayOfWeek.findViewById(R.id.daySecond);
+                    daysOfWeek[2] = (ToggleButton) holder.layoutDayOfWeek.findViewById(R.id.dayThird);
+                    daysOfWeek[3] = (ToggleButton) holder.layoutDayOfWeek.findViewById(R.id.dayFourth);
+                    daysOfWeek[4] = (ToggleButton) holder.layoutDayOfWeek.findViewById(R.id.dayFifth);
+                    daysOfWeek[5] = (ToggleButton) holder.layoutDayOfWeek.findViewById(R.id.daySixth);
+                    daysOfWeek[6] = (ToggleButton) holder.layoutDayOfWeek.findViewById(R.id.daySeventh);
+
+                    GregorianCalendar calendar = new GregorianCalendar();
+                    final int firstDay = calendar.getFirstDayOfWeek();
+
+                    for (int i = 0; i < 7; i++) {
+                        daysOfWeek[i].setText(getShortDayName(i + firstDay));
+                        daysOfWeek[i].setTextOn(getShortDayName(i + firstDay));
+                        daysOfWeek[i].setTextOff(getShortDayName(i + firstDay));
+                        byte day = note.getDaysOfWeek();
+                        if (firstDay == 2) {
+                            day = (byte) ((byte) (day << (i + 1)) >> 7);
+                        } else {
+                            if (i == 0) {
+                                day = (byte) ((byte) (day << 7) >> 7);
+                            } else {
+                                day = (byte) ((byte) (day << i) >> 7);
+                            }
+                        }
+                        if (day == -1) {
+                            daysOfWeek[i].setChecked(true);
+                        }
+                        daysOfWeek[i].setEnabled(false);
+                    }
                 } else {
-                    initViewDownDate(holder, note);
+                    holder.layoutItemListView.addView(holder.layoutDate);
+                    DateFormat formatDate = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
+                    holder.textViewDate.setText(formatDate.format(note.getFireDate()));
                 }
+                holder.layoutItemListView.addView(holder.layoutTime);
+                DateFormat formatTime = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
+                holder.textViewTime.setText(formatTime.format(note.getFireDate()));
             }
+            holder.layoutItemListView.addView(holder.ratingBar, holder.layoutItemListView.getChildCount());
+            holder.ratingBar.setRating(note.getPriority().getValue());
+            holder.opened = holder.layoutItemListView.getHeight();
+            holder.layoutItemListView.setMinimumHeight(400);
         } catch (Exception e) {
             Log.v(getClass().getName(), e.getMessage());
         }
-    }
-
-    private void initViewDownRegularlyDate(ViewHolder holder, Note note) {
-        LinearLayout layoutDayOfWeek = (LinearLayout) holder.itemDownRegularlyDate.findViewById(R.id.layoutDayOfWeek);
-        ToggleButton[] daysOfWeek = new ToggleButton[7];
-
-        daysOfWeek[0] = (ToggleButton) layoutDayOfWeek.findViewById(R.id.dayFirst);
-        daysOfWeek[1] = (ToggleButton) layoutDayOfWeek.findViewById(R.id.daySecond);
-        daysOfWeek[2] = (ToggleButton) layoutDayOfWeek.findViewById(R.id.dayThird);
-        daysOfWeek[3] = (ToggleButton) layoutDayOfWeek.findViewById(R.id.dayFourth);
-        daysOfWeek[4] = (ToggleButton) layoutDayOfWeek.findViewById(R.id.dayFifth);
-        daysOfWeek[5] = (ToggleButton) layoutDayOfWeek.findViewById(R.id.daySixth);
-        daysOfWeek[6] = (ToggleButton) layoutDayOfWeek.findViewById(R.id.daySeventh);
-
-        GregorianCalendar calendar = new GregorianCalendar();
-        final int firstDay = calendar.getFirstDayOfWeek();
-
-        for (int i = 0; i < 7; i++) {
-            daysOfWeek[i].setText(getShortDayName(i + firstDay));
-            daysOfWeek[i].setTextOn(getShortDayName(i + firstDay));
-            daysOfWeek[i].setTextOff(getShortDayName(i + firstDay));
-            byte day = note.getDaysOfWeek();
-            if (firstDay == 2) {
-                day = (byte) ((byte) (day << (i + 1)) >> 7);
-            } else {
-                if (i == 0) {
-                    day = (byte) ((byte) (day << 7) >> 7);
-                } else {
-                    day = (byte) ((byte) (day << i) >> 7);
-                }
-            }
-            if (day == -1) {
-                daysOfWeek[i].setChecked(true);
-            }
-            daysOfWeek[i].setEnabled(false);
-        }
-
-        TextView textViewBody = (TextView) holder.itemDownRegularlyDate.findViewById(R.id.textViewBody);
-        TextView textViewTime = (TextView) holder.itemDownRegularlyDate.findViewById(R.id.textViewTime);
-        TextView textViewRemindOf = (TextView) holder.itemDownRegularlyDate.findViewById(R.id.textViewRemindOf);
-        AppCompatRatingBar ratingBar = (AppCompatRatingBar) holder.itemDownRegularlyDate.findViewById(R.id.smallRatingBar);
-
-        DateFormat formatTime = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
-
-        textViewBody.setText(note.getBody());
-        textViewTime.setText(formatTime.format(note.getFireDate()));
-        textViewRemindOf.setText(activity.getResources().getStringArray(R.array.remind_of)[remindOfPosition(note.getRemindOf())]);
-        ratingBar.setRating(note.getPriority().getValue());
-        holder.layoutItemListView.addView(holder.itemDownRegularlyDate);
-    }
-
-        private void initViewDownDate(ViewHolder holder, Note note) {
-        TextView textViewBody = (TextView) holder.itemDownDate.findViewById(R.id.textViewBody);
-        TextView textViewDate = (TextView) holder.itemDownDate.findViewById(R.id.textViewDate);
-        TextView textViewTime = (TextView) holder.itemDownDate.findViewById(R.id.textViewTime);
-        TextView textViewRemindOf = (TextView) holder.itemDownDate.findViewById(R.id.textViewRemindOf);
-        AppCompatRatingBar ratingBar = (AppCompatRatingBar) holder.itemDownDate.findViewById(R.id.smallRatingBar);
-
-        DateFormat formatDate = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
-        DateFormat formatTime = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
-
-        textViewBody.setText(note.getBody());
-        textViewDate.setText(formatDate.format(note.getFireDate()));
-        textViewTime.setText(formatTime.format(note.getFireDate()));
-        textViewRemindOf.setText(activity.getResources().getStringArray(R.array.remind_of)[remindOfPosition(note.getRemindOf())]);
-        ratingBar.setRating(note.getPriority().getValue());
-        holder.layoutItemListView.addView(holder.itemDownDate);
-    }
-
-    private void initViewDownBody(ViewHolder holder, Note note) {
-        TextView textViewBody = (TextView) holder.itemDownBody.findViewById(R.id.textViewBody);
-        AppCompatRatingBar ratingBar = (AppCompatRatingBar) holder.itemDownBody.findViewById(R.id.smallRatingBar);
-
-        textViewBody.setText(note.getBody());
-        ratingBar.setRating(note.getPriority().getValue());
-
-        holder.layoutItemListView.addView(holder.itemDownBody);
     }
 
     private void initAlphaView(ViewHolder holder, Note note) {
@@ -377,28 +370,28 @@ public class NoteAdapter extends BaseAdapter {
     }
 
     private void removeViewInItem(final ViewHolder holder) {
-        holder.layoutItemListView.removeView(holder.itemDownBody);
-        holder.layoutItemListView.removeView(holder.itemDownDate);
-        holder.layoutItemListView.removeView(holder.itemDownRegularlyDate);
-
-        ValueAnimator va = new ValueAnimator().ofInt(holder.opened, 0);
-        va.setDuration(700);
-        va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            public void onAnimationUpdate(ValueAnimator animation) {
-                Integer value = (Integer) animation.getAnimatedValue();
-                holder.layoutItemListView.setMinimumHeight(value);
-                holder.layoutItemListView.requestLayout();
+        holder.layoutItemListView.removeView(holder.viewLine);
+        holder.layoutItemListView.removeView(holder.textViewBody);
+        holder.layoutItemListView.removeView(holder.layoutDate);
+        holder.layoutItemListView.removeView(holder.layoutDayOfWeek);
+        holder.layoutItemListView.removeView(holder.layoutTime);
+        holder.layoutItemListView.removeView(holder.layoutRemindOf);
+        holder.layoutItemListView.removeView(holder.ratingBar);
+        holder.layoutItemListView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                holder.layoutItemListView.setMinimumHeight(holder.closed);
             }
-        });
-        va.start();
-
+        },500);
     }
 
     @NonNull
     private ViewHolder getViewHolder(View convertView) {
         ViewHolder holder;
+        View viewDown = this.inflater.inflate(R.layout.item_listview_down, null);
         holder = new ViewHolder();
         holder.layoutItemListView = (LinearLayout) convertView.findViewById(R.id.containerItemListView);
+
         holder.imageView = (ImageView) convertView.findViewById(R.id.imageNote);
         holder.textViewHeader = (TextView) convertView.findViewById(R.id.textViewHeader);
         holder.textViewDescription = (TextView) convertView.findViewById(R.id.textViewDescription);
@@ -406,11 +399,24 @@ public class NoteAdapter extends BaseAdapter {
         holder.textViewTypeNote = (TextView) convertView.findViewById(R.id.textViewTypeNote);
         holder.closed = convertView.getHeight();
 
-        holder.currentView = convertView;
-        holder.itemDownBody = this.inflater.inflate(R.layout.item_down_body, null);
-        holder.itemDownDate = this.inflater.inflate(R.layout.item_down_date, null);
-        holder.itemDownRegularlyDate = this.inflater.inflate(R.layout.item_down_regularly_date, null);
-
+        LinearLayout layoutDown = (LinearLayout) viewDown.findViewById(R.id.layoutDown);
+        holder.viewLine = viewDown.findViewById(R.id.line);
+        layoutDown.removeView(holder.viewLine);
+        holder.textViewBody = (TextView) viewDown.findViewById(R.id.textViewBody);
+        layoutDown.removeView(holder.textViewBody);
+        holder.layoutDate = (RelativeLayout) viewDown.findViewById(R.id.layoutDate);
+        layoutDown.removeView(holder.layoutDate);
+        holder.textViewDate = (TextView) holder.layoutDate.findViewById(R.id.textViewDate);
+        holder.layoutDayOfWeek = (LinearLayout) viewDown.findViewById(R.id.layoutDayOfWeek);
+        layoutDown.removeView(holder.layoutDayOfWeek);
+        holder.layoutTime = (RelativeLayout) viewDown.findViewById(R.id.layoutTime);
+        layoutDown.removeView(holder.layoutTime);
+        holder.textViewTime = (TextView) holder.layoutTime.findViewById(R.id.textViewTime);
+        holder.layoutRemindOf = (RelativeLayout) viewDown.findViewById(R.id.layoutRemindOf);
+        layoutDown.removeView(holder.layoutRemindOf);
+        holder.textViewRemindOf = (TextView) holder.layoutRemindOf.findViewById(R.id.textViewRemindOf);
+        holder.ratingBar = (AppCompatRatingBar) viewDown.findViewById(R.id.smallRatingBar);
+        layoutDown.removeView(holder.ratingBar);
         return holder;
     }
 
@@ -448,14 +454,5 @@ public class NoteAdapter extends BaseAdapter {
             format = format.substring(0, 3);
         }
         return format;
-    }
-
-    private int remindOfPosition(long remindOf) {
-        for (int i = 0; i < this.remindOf.length; i++) {
-            if (remindOf == this.remindOf[i]) {
-                return i;
-            }
-        }
-        return 0;
-    }
+    }*/
 }

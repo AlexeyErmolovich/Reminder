@@ -1,27 +1,35 @@
 package com.alexey.reminder;
 
+import android.animation.Animator;
 import android.annotation.TargetApi;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ListViewCompat;
 import android.support.v7.widget.Toolbar;
+import android.view.Display;
 import android.view.View;
+import android.view.ViewAnimationUtils;
+import android.view.WindowManager;
 import android.widget.AbsListView;
-import android.widget.ListView;
 
-public class  MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
 
     private final int NOTE_ADD = 1;
-
+    private AppCompatActivity activity;
     private NoteAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        manager.cancelAll();
+        this.activity = this;
         initToolBar();
         initListView();
     }
@@ -29,8 +37,8 @@ public class  MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode==RESULT_OK){
-            adapter.notifyDataSetChanged();
+        if (resultCode == RESULT_OK) {
+            adapter.updateList();
         }
     }
 
@@ -46,17 +54,16 @@ public class  MainActivity extends AppCompatActivity {
         });
         this.adapter = new NoteAdapter(this);
 
-        ListView listView = (ListView) findViewById(R.id.listViewMain);
+        ListViewCompat listView = (ListViewCompat) findViewById(R.id.listViewMain);
         listView.setAdapter(this.adapter);
-
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
 
-                if(scrollState==SCROLL_STATE_FLING){
+                if (scrollState == SCROLL_STATE_FLING) {
                     fab.hide();
                 }
-                if(scrollState==SCROLL_STATE_IDLE){
+                if (scrollState == SCROLL_STATE_IDLE) {
                     fab.show();
                 }
             }
