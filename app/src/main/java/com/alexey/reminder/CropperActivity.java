@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -58,7 +59,25 @@ public class CropperActivity extends AppCompatActivity {
         initButtonSave();
         initButtonCancel();
 
-        CountDownTimer timer = new CountDownTimer(100, 100) {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                leftCrop = cropView.getLeft();
+                topCrop = cropView.getTop();
+                widthCrop = cropView.getWidth();
+                if (leftCrop != 0 && topCrop != 0) {
+                    layoutImage.setPadding(leftCrop, topCrop, leftCrop, topCrop);
+                    ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+                    layoutParams.width = bitmapOriginal.getWidth();
+                    layoutParams.height = bitmapOriginal.getHeight();
+                    zoomHeight = layoutParams.height / 90;
+                    zoomWidth = layoutParams.width / 90;
+                    imageView.setLayoutParams(layoutParams);
+                }
+            }
+        }, 500);
+
+        /*CountDownTimer timer = new CountDownTimer(100, 100) {
             @Override
             public void onTick(long millisUntilFinished) {
             }
@@ -81,7 +100,7 @@ public class CropperActivity extends AppCompatActivity {
                 }
             }
         };
-        timer.start();
+        timer.start();*/
     }
 
     @Override

@@ -28,18 +28,16 @@ import com.alexey.reminder.model.DaoMaster;
 import com.alexey.reminder.model.DaoSession;
 import com.alexey.reminder.model.Note;
 import com.alexey.reminder.model.NoteDao;
-import com.alexey.reminder.model.PriorityEnum.Priority;
 import com.alexey.reminder.model.TypeNoteEnum.TypeNote;
 
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by Alexey on 21.03.2016.
@@ -47,7 +45,6 @@ import java.util.UUID;
 public class NoteAdapter extends BaseAdapter {
 
     private AppCompatActivity activity;
-    private ProgressBar progressBar;
     private List<Note> noteList;
     private NoteDao noteDao;
     private LayoutInflater inflater;
@@ -80,85 +77,27 @@ public class NoteAdapter extends BaseAdapter {
     public NoteAdapter(AppCompatActivity activity) {
         this.activity = activity;
         this.inflater = (LayoutInflater) this.activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        this.progressBar = (ProgressBar) activity.findViewById(R.id.progress);
         this.update = false;
         this.loadData();
     }
 
     private void loadData() {
-        progressBar.setVisibility(View.VISIBLE);
-        DaoMaster.OpenHelper helper = new DaoMaster.DevOpenHelper(activity, "Note", null);
-        SQLiteDatabase db = helper.getWritableDatabase();
-        helper.onUpgrade(db, db.getVersion(), DaoMaster.SCHEMA_VERSION);
-        DaoMaster daoMaster = new DaoMaster(db);
-        DaoSession session = daoMaster.newSession();
-        this.noteDao = session.getNoteDao();
+        LoadDataAsyncTask loadData = new LoadDataAsyncTask(this.activity);
+        loadData.execute();
+        try {
+            this.noteList = loadData.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        initSortNotes();
+    }
 
-        this.noteList = this.noteDao.loadAll();
+    private void initSortNotes() {
         if (this.noteList.size() > 1) {
             Collections.sort(this.noteList, this.comparatorNote);
         }
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        noteList.add(new Note(UUID.randomUUID().toString(), "dw", "dd", "dw", new Date(), new Date(), false, Byte.valueOf("0"), false, 0l, new byte[0], new byte[0], Priority.None, TypeNote.Todo));
-        for (Note note : this.noteList) {
-            Bitmap bitmap = null;
-            if (note.getImageCut().length != 0) {
-                bitmap = BitmapFactory.decodeByteArray(note.getImageCut(), 0, note.getImageCut().length);
-            }
-            note.setBitmap(bitmap);
-            note.setShowInfo(false);
-        }
-
-        progressBar.setVisibility(View.GONE);
     }
 
     static class ViewHolder {
@@ -231,7 +170,7 @@ public class NoteAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 if (note.isShowInfo()) {
-                    holder.opened = holder.currentView.getHeight() -12;
+                    holder.opened = holder.currentView.getHeight() - 12;
                     holder.layoutItemListView.setMinimumHeight(holder.opened);
                     removeViewInItem(holder);
                     note.setShowInfo(false);
@@ -323,7 +262,7 @@ public class NoteAdapter extends BaseAdapter {
         holder.layoutItemListView.addView(holder.itemDownRegularlyDate);
     }
 
-        private void initViewDownDate(ViewHolder holder, Note note) {
+    private void initViewDownDate(ViewHolder holder, Note note) {
         TextView textViewBody = (TextView) holder.itemDownDate.findViewById(R.id.textViewBody);
         TextView textViewDate = (TextView) holder.itemDownDate.findViewById(R.id.textViewDate);
         TextView textViewTime = (TextView) holder.itemDownDate.findViewById(R.id.textViewTime);
@@ -457,5 +396,20 @@ public class NoteAdapter extends BaseAdapter {
             }
         }
         return 0;
+    }
+
+    public void searchItems(String query) {
+        SearchNotesAsyncTask searchNotes = new SearchNotesAsyncTask(activity);
+        searchNotes.execute(query);
+        try {
+            this.noteList = searchNotes.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        initSortNotes();
+        this.update = true;
+        this.notifyDataSetChanged();
     }
 }

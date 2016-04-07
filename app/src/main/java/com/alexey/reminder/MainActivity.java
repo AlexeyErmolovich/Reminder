@@ -1,6 +1,5 @@
 package com.alexey.reminder;
 
-import android.animation.Animator;
 import android.annotation.TargetApi;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -10,11 +9,11 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ListViewCompat;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.view.Display;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewAnimationUtils;
-import android.view.WindowManager;
 import android.widget.AbsListView;
 
 public class MainActivity extends AppCompatActivity {
@@ -79,6 +78,44 @@ public class MainActivity extends AppCompatActivity {
     private void initToolBar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolBarMain);
         toolbar.setTitle(R.string.app_name);
+        toolbar.setTitleTextColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setSubtitleTextColor(getResources().getColor(R.color.colorWhite));
+        toolbar.inflateMenu(R.menu.menu);
+        initItemSearchToolBar(toolbar);
     }
+
+    private void initItemSearchToolBar(Toolbar toolbar) {
+        MenuItem searchItem = toolbar.getMenu().findItem(R.id.menu_item_searsh);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                if (query.trim().length() > 0) {
+                    adapter.searchItems(query);
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if(newText.length() == 0){
+                    adapter.updateList();
+                }
+                return false;
+            }
+        });
+        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                adapter.updateList();
+            }
+        });
+    }
+
 
 }

@@ -8,6 +8,19 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="Toolbar" parent="android:Theme.Holo">
+        <item name="homeAsUpIndicator">@drawable/backspace</item>
+        <item name="titleTextColor">@color/colorWhite</item>
+        <item name="searchViewStyle">@style/AppSearchViewStyle</item>
+    </style>
+
+    <style name="AppSearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <item name="queryBackground">@android:color/transparent</item>
+        <item name="searchIcon">@drawable/ic_search</item>
+        <item name="closeIcon">@drawable/close</item>
+        <item name="colorButtonNormal">@color/colorWhite</item>
+    </style>
+
     <style name="Widget.Button.Toggle" parent="android:Widget">
         <item name="android:background">@drawable/brn_toggle</item>
         <item name="android:textOn">ON</item>

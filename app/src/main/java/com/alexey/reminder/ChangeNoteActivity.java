@@ -849,7 +849,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
                                 if (i == 0) {
                                     days = (byte) (days + Math.pow(2, 0));
                                 } else {
-                                    days = (byte) (days + Math.pow(2, 5 - i));
+                                    days = (byte) (days + Math.pow(2, 7 - i));
                                 }
                             }
                         }
@@ -871,6 +871,8 @@ public class ChangeNoteActivity extends AppCompatActivity {
     }
 
     private void initAlarmNotification() {
+        DateFormat formatDate = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
+        DateFormat formatTime = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
         if (note.getTypeNote() == TypeNote.Birthday) {
             if (!note.getPerformed()) {
                 Intent alarmIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
@@ -878,13 +880,14 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
                 final int delay = 60000;
                 long triggerAtMillis = note.getFireDate().getTime() - note.getRemindOf() - delay;
-                if (triggerAtMillis < note.getTimeStamp().getTime()) {
+                if (triggerAtMillis < System.currentTimeMillis()) {
                     triggerAtMillis = note.getFireDate().getTime();
                     alarmIntent.putExtra("remind", false);
                 } else {
                     triggerAtMillis = note.getFireDate().getTime() - note.getRemindOf();
                     alarmIntent.putExtra("remind", true);
                 }
+                Log.i(getClass().getName(), formatDate.format(new Date(triggerAtMillis)) + " " + formatTime.format(new Date(triggerAtMillis)));
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), note.getUuid().hashCode(), alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -921,7 +924,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
                             }
                         }
                         if (i == 6) {
-                            for (int j = 0; i < currentDayOfWeek; j++) {
+                            for (int j = 0; j < currentDayOfWeek; j++) {
                                 if (daysOfWeekCheck[j]) {
                                     break;
                                 } else {
@@ -939,7 +942,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
                         triggerAtMillis = calendar.getTimeInMillis() - note.getRemindOf();
                         alarmIntent.putExtra("remind", true);
                     }
-
+                    Log.i(getClass().getName(), formatDate.format(new Date(triggerAtMillis)) + " " + formatTime.format(new Date(triggerAtMillis)));
                 } else {
                     triggerAtMillis = note.getFireDate().getTime() - note.getRemindOf() - delay;
                     if (triggerAtMillis < note.getTimeStamp().getTime()) {
@@ -949,6 +952,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
                         triggerAtMillis = note.getFireDate().getTime() - note.getRemindOf();
                         alarmIntent.putExtra("remind", true);
                     }
+                    Log.i(getClass().getName(), formatDate.format(new Date(triggerAtMillis)) + " " + formatTime.format(new Date(triggerAtMillis)));
                 }
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), note.getUuid().hashCode(), alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 

@@ -37,9 +37,12 @@ public class AlarmReceiver extends BroadcastReceiver {
         NoteDao noteDao = session.getNoteDao();
 
         Note note = noteDao.load(uuid);
+        if (note.getPerformed()) {
+            return;
+        }
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Intent intentJump = new Intent(context, MainActivity.class);
+        Intent intentJump = new Intent(context, SplashScreenActivity.class);
         intentJump.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intentJump, Intent.FILL_IN_ACTION);
 
@@ -104,7 +107,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                         }
                     }
                     if (i == 6) {
-                        for (int j = 0; i < currentDayOfWeek; j++) {
+                        for (int j = 0; j < currentDayOfWeek; j++) {
                             if (daysOfWeekCheck[j]) {
                                 break;
                             } else {

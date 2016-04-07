@@ -33,6 +33,9 @@
     <string name="todo">To do</string>
     <string name="text_regularly">Regularly</string>
     <string name="text_ok">Ok</string>
+    <string name="menu_search">Search</string>
+    <string name="exception_not_found">Add a note by clicking on the plus</string>
+    <string name="exception_search_not_found">No search results</string>
 
 
     <string-array name="load_image_and_change">

@@ -88,7 +88,7 @@ public class StartAlarmReceiver extends BroadcastReceiver {
                                 }
                             }
                             if (i == 6) {
-                                for (int j = 0; i < currentDayOfWeek; j++) {
+                                for (int j = 0; j < currentDayOfWeek; j++) {
                                     if (daysOfWeekCheck[j]) {
                                         break;
                                     } else {
