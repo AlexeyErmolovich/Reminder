@@ -11,8 +11,8 @@
     <string name="text_priority">Priority</string>
 
     <string name="new_note">New Note</string>
-    <string name="revise_note">Revise Note</string>
-    <string name="delete_note">Delete Note</string>
+    <string name="revise_note">Edit Note</string>
+    <string name="delete_note">Delete this note</string>
     <string name="text_cancel">Cancel</string>
     <string name="text_save">Save</string>
     <string name="text_no">No</string>
@@ -23,25 +23,31 @@
     <string name="text_error_body">Enter the body!</string>
     <string name="text_error_date">Enter the date!</string>
     <string name="text_error_time">Enter the time!</string>
-    <string name="text_change_image">Change Image</string>
+    <string name="text_change_image">Edit this image</string>
     <string name="text_make_photo">Make a photo</string>
     <string name="text_load_gallery">Load from the gallery</string>
     <string name="title_alertdialog_image">What to do?</string>
     <string name="notification_todo">You have scheduled action</string>
     <string name="notification_birthday">Do not forget to congratulate on birthday</string>
     <string name="birthday">Birthday</string>
+    <string name="idea">Idea</string>
+    <string name="text_change_note">Edit this note</string>
     <string name="todo">To do</string>
     <string name="text_regularly">Regularly</string>
     <string name="text_ok">Ok</string>
     <string name="menu_search">Search</string>
     <string name="exception_not_found">Add a note by clicking on the plus</string>
     <string name="exception_search_not_found">No search results</string>
+    <string name="text_edit">Edit</string>
+    <string name="text_information">Information</string>
+    <string name="text_are_you_sure">Are you sure?</string>
+    <string name="text_exception_maxLines">Limit limited!</string>
 
 
     <string-array name="load_image_and_change">
         <item>Make a photo</item>
         <item>Load from the gallery</item>
-        <item>Change image</item>
+        <item>Edit this image</item>
     </string-array>
 
     <string-array name="load_image">
@@ -53,12 +59,6 @@
         <item>Birthday</item>
         <item>Todo</item>
         <item>Idea</item>
-    </string-array>
-
-    <string-array name="priorities">
-        <item>Low</item>
-        <item>Middle</item>
-        <item>High</item>
     </string-array>
 
     <string-array name="remind_of">

@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Created by Alexey on 07.04.2016.
  */
-public class SearchNotesAsyncTask extends AsyncTask<String,Void, List<Note>> {
+public class SearchNotesAsyncTask extends AsyncTask<String, Void, List<Note>> {
     private AppCompatActivity activity;
     private ProgressBar progressBar;
     private TextView textNotFoundData;
@@ -39,44 +39,16 @@ public class SearchNotesAsyncTask extends AsyncTask<String,Void, List<Note>> {
         DaoMaster daoMaster = new DaoMaster(db);
         DaoSession session = daoMaster.newSession();
         NoteDao noteDao = session.getNoteDao();
-        List<Note> noteList = new ArrayList<>();
-
-        for(String param:params) {
-            noteList = Note.getNotesOnItsHeader(noteDao, param);
-            List<Note> listDescription = Note.getNotesOnItsDescription(noteDao, param);
-            for (Note noteDescription : listDescription) {
-                boolean add = true;
-                for (Note note : noteList) {
-                    if (note.getUuid().equals(noteDescription.getUuid())) {
-                        add = false;
-                        break;
-                    }
-                }
-                if (add) {
-                    noteList.add(noteDescription);
-                }
-            }
-            List<Note> listBody = Note.getNotesOnItsBody(noteDao, param);
-            for (Note noteBody : listBody) {
-                boolean add = true;
-                for (Note note : noteList) {
-                    if (note.getUuid().equals(noteBody.getUuid())) {
-                        add = false;
-                        break;
-                    }
-                }
-                if (add) {
-                    noteList.add(noteBody);
-                }
-            }
-        }
+        List<Note> noteList = Note.getNotesInSearch(noteDao, params[0]);
+        session.clear();
+        db.close();
         for (Note note : noteList) {
             Bitmap bitmap = null;
             if (note.getImageCut().length != 0) {
                 bitmap = BitmapFactory.decodeByteArray(note.getImageCut(), 0, note.getImageCut().length);
             }
             note.setBitmap(bitmap);
-            note.setShowInfo(false);
+            note.setShowInfo(3);
         }
         return noteList;
     }

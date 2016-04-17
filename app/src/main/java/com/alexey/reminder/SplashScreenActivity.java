@@ -2,9 +2,9 @@ package com.alexey.reminder;
 
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.widget.RelativeLayout;
 
 public class SplashScreenActivity extends AppCompatActivity {

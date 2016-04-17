@@ -10,17 +10,18 @@ import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
@@ -52,7 +53,9 @@ import com.alexey.reminder.model.TypeNoteEnum.TypeNote;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -104,6 +107,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
     private Bitmap bitmapDefault;
     private Bitmap bitmapLoad;
     private Bitmap bitmapLoadCut;
+    private boolean edit;
     /**
      * Current type note
      */
@@ -116,10 +120,9 @@ public class ChangeNoteActivity extends AppCompatActivity {
      * Each bit of this byte contains information, whether a note executed on the corresponding day of the week
      */
     private byte dayOfWeek;
-    /**
-     * Contains the full path of the image
-     */
+
     private String mCurrentPhotoPath;
+    private Uri mImageUri;
 
     private ToggleButton[] daysOfWeek;
 
@@ -127,18 +130,22 @@ public class ChangeNoteActivity extends AppCompatActivity {
     private CircleImageView imageView;
     private Spinner spinnerTypeNote;
     private EditText editTextHeader;
+    private TextInputLayout inputLayoutHeader;
     private EditText editTextDescription;
+    private TextInputLayout inputLayoutDescription;
     private EditText editTextBody;
+    private TextInputLayout inputLayoutBody;
     private EditText editTextDate;
     private EditText editTextTime;
     private SwitchCompat switchRegularly;
     private View layoutDaysOfWeek;
     private Spinner spinnerRemindOf;
     private RatingBar ratingBarPriority;
+    private Button save;
+    private Button cancel;
 
     private LinearLayout layoutFireDate;
     private RelativeLayout layoutRemindOf;
-    private RelativeLayout layoutPriority;
     private LinearLayout layoutRegularly;
 
     /**
@@ -154,6 +161,8 @@ public class ChangeNoteActivity extends AppCompatActivity {
         this.activity = this;
 
         String uuid = getIntent().getStringExtra("NoteUUID");
+        this.edit = getIntent().getBooleanExtra("edit", false);
+
         DaoMaster.OpenHelper helper = new DaoMaster.DevOpenHelper(this, "Note", null);
         SQLiteDatabase db = helper.getWritableDatabase();
         DaoMaster daoMaster = new DaoMaster(db);
@@ -161,9 +170,12 @@ public class ChangeNoteActivity extends AppCompatActivity {
         this.noteDao = session.getNoteDao();
 
         this.calendar = new GregorianCalendar();
+        this.calendar.set(Calendar.DAY_OF_MONTH, this.calendar.get(Calendar.DAY_OF_MONTH) + 1);
+        this.calendar.set(Calendar.HOUR_OF_DAY, 12);
+        this.calendar.set(Calendar.MINUTE, 0);
 
         if (uuid.equals("")) {
-            revise = false;
+            this.revise = false;
             this.note = new Note(UUID.randomUUID().toString(), "", "", "", null, calendar.getTime(), false, Byte.valueOf("0"), false, 0l,
                     new byte[0], new byte[0], Priority.None, TypeNote.Birthday);
         } else {
@@ -173,11 +185,8 @@ public class ChangeNoteActivity extends AppCompatActivity {
             this.dayOfWeek = this.note.getDaysOfWeek();
         }
 
-        duration = 400;
+        this.duration = 400;
 
-        initToolBar();
-        initToolBarButtonCancel();
-        initToolBarButtonSave();
         initLayouts();
         initImage();
         initEditTextHeader();
@@ -189,6 +198,9 @@ public class ChangeNoteActivity extends AppCompatActivity {
         initSpinnerRemindOf();
         inirRatingeBarPriority();
         initSpinnerTypeNote();
+        initToolBar();
+        initToolBarButtonCancel();
+        initToolBarButtonSave();
     }
 
     private static String getShortDayName(int day) {
@@ -202,16 +214,8 @@ public class ChangeNoteActivity extends AppCompatActivity {
         return format;
     }
 
-    private static String getLongDayName(int day) {
-        Calendar c = Calendar.getInstance();
-        c.set(2015, 7, 1, 0, 0, 0);
-        c.add(Calendar.DAY_OF_MONTH, day);
-        return String.format("%tA", c);
-    }
-
     private void initLayoutDayOfWeek(View view) {
         daysOfWeek = new ToggleButton[7];
-        final String[] daysOfWeekName = new String[7];
 
         daysOfWeek[0] = (ToggleButton) view.findViewById(R.id.dayFirst);
         daysOfWeek[1] = (ToggleButton) view.findViewById(R.id.daySecond);
@@ -290,7 +294,6 @@ public class ChangeNoteActivity extends AppCompatActivity {
             daysOfWeek[i].setText(getShortDayName(i + firstDay));
             daysOfWeek[i].setTextOn(getShortDayName(i + firstDay));
             daysOfWeek[i].setTextOff(getShortDayName(i + firstDay));
-            daysOfWeekName[i] = getLongDayName(i + firstDay);
             byte day = note.getDaysOfWeek();
             if (firstDay == 2) {
                 day = (byte) ((byte) (day << (i + 1)) >> 7);
@@ -340,7 +343,6 @@ public class ChangeNoteActivity extends AppCompatActivity {
         this.containerNote = (LinearLayout) findViewById(R.id.container);
         this.layoutFireDate = (LinearLayout) findViewById(R.id.layoutFireDate);
         this.layoutRemindOf = (RelativeLayout) findViewById(R.id.layoutRemindOf);
-        this.layoutPriority = (RelativeLayout) findViewById(R.id.layoutPriority);
         this.layoutRegularly = (LinearLayout) findViewById(R.id.layoutRegularly);
 
         Display defaultDisplay = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
@@ -379,9 +381,8 @@ public class ChangeNoteActivity extends AppCompatActivity {
     private void initEditTextTime() {
         this.editTextTime = (EditText) findViewById(R.id.editTextFireTime);
         final DateFormat format = DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault());
-        if (revise) {
-            this.editTextTime.setText(format.format(this.note.getFireDate()));
-        }
+        this.editTextTime.setText(format.format(calendar.getTime()));
+
         final TimePickerDialog.OnTimeSetListener timeSetListener = new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
@@ -401,11 +402,17 @@ public class ChangeNoteActivity extends AppCompatActivity {
                     TimePickerDialog pickerDialog;
                     if (aDefault.getCountry().equals("RU")) {
                         pickerDialog = new TimePickerDialog(activity, timeSetListener,
-                                12, 0, true);
+                                calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
                     } else {
                         pickerDialog = new TimePickerDialog(activity, timeSetListener,
-                                12, 0, false);
+                                calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
                     }
+                    pickerDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            editTextTime.clearFocus();
+                        }
+                    });
                     pickerDialog.show();
                 }
             }
@@ -415,9 +422,8 @@ public class ChangeNoteActivity extends AppCompatActivity {
     private void initEditTextDate() {
         this.editTextDate = (EditText) findViewById(R.id.editTextFireDate);
         final DateFormat format = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
-        if (revise) {
-            this.editTextDate.setText(format.format(this.note.getFireDate()));
-        }
+        this.editTextDate.setText(format.format(calendar.getTime()));
+
         final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -433,7 +439,13 @@ public class ChangeNoteActivity extends AppCompatActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
                     DatePickerDialog pickerDialog = new DatePickerDialog(activity, dateSetListener,
-                            calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH) + 1);
+                            calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+                    pickerDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            editTextDate.clearFocus();
+                        }
+                    });
                     pickerDialog.show();
                 }
             }
@@ -442,7 +454,12 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
     private void initEditTextBody() {
         this.editTextBody = (EditText) findViewById(R.id.editTextBody);
-        this.editTextBody.setText(this.note.getBody());
+        this.inputLayoutBody = (TextInputLayout) findViewById(R.id.inputLayoutBody);
+        String body = this.note.getBody();
+        if(body.length() == this.inputLayoutBody.getCounterMaxLength()){
+            inputLayoutBody.setError(getString(R.string.text_exception_maxLines));
+        }
+        this.editTextBody.setText(body);
         this.editTextBody.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -451,8 +468,12 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString().trim().length() > 0) {
-                    editTextDescription.setError(null);
+                int length = s.toString().trim().length();
+                if (length > 0 && length < inputLayoutBody.getCounterMaxLength()) {
+                    inputLayoutBody.setError(null);
+                }
+                if (start + count >= inputLayoutBody.getCounterMaxLength()) {
+                    inputLayoutBody.setError(getString(R.string.text_exception_maxLines));
                 }
             }
 
@@ -465,7 +486,12 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
     private void initEditTextDescription() {
         this.editTextDescription = (EditText) findViewById(R.id.editTextDescription);
-        this.editTextDescription.setText(this.note.getDescription());
+        this.inputLayoutDescription = (TextInputLayout) findViewById(R.id.inputLayoutDescription);
+        String description = this.note.getDescription();
+        if(description.length() == this.inputLayoutDescription.getCounterMaxLength()){
+            inputLayoutDescription.setError(getString(R.string.text_exception_maxLines));
+        }
+        this.editTextDescription.setText(description);
         this.editTextDescription.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -474,8 +500,12 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString().trim().length() > 0) {
-                    editTextDescription.setError(null);
+                int length = s.toString().trim().length();
+                if (length > 0 && length < inputLayoutDescription.getCounterMaxLength()) {
+                    inputLayoutDescription.setError(null);
+                }
+                if (start + count >= inputLayoutDescription.getCounterMaxLength()) {
+                    inputLayoutDescription.setError(getString(R.string.text_exception_maxLines));
                 }
             }
 
@@ -488,7 +518,13 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
     private void initEditTextHeader() {
         this.editTextHeader = (EditText) findViewById(R.id.editTextHeader);
-        this.editTextHeader.setText(this.note.getHeader());
+        this.inputLayoutHeader = (TextInputLayout) findViewById(R.id.inputLayoutHeader);
+        String header = this.note.getHeader();
+        if(header.length() == this.inputLayoutHeader.getCounterMaxLength()){
+            inputLayoutHeader.setError(getString(R.string.text_exception_maxLines));
+        }
+        this.editTextHeader.setText(header);
+        this.editTextHeader.setSelection(editTextHeader.length());
         this.editTextHeader.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -497,8 +533,12 @@ public class ChangeNoteActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString().trim().length() > 0) {
-                    editTextHeader.setError(null);
+                int length = s.toString().trim().length();
+                if (length > 0 && length < inputLayoutHeader.getCounterMaxLength()) {
+                    inputLayoutHeader.setError(null);
+                }
+                if (start + count >= inputLayoutHeader.getCounterMaxLength()) {
+                    inputLayoutHeader.setError(getString(R.string.text_exception_maxLines));
                 }
             }
 
@@ -601,15 +641,21 @@ public class ChangeNoteActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Bitmap bitmap;
+        Bitmap bitmap = null;
+        InputStream is = null;
         if (resultCode == RESULT_OK) {
             if (requestCode == GALLERY_REQUEST) {
                 Uri uriImage = data.getData();
-                mCurrentPhotoPath = getRealPathFromURI(uriImage);
-                bitmap = setPic();
+                try {
+                    is = getContentResolver().openInputStream(uriImage);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                bitmap = setPicGallery(is);
                 note.setBitmap(bitmap);
                 initChangeImageIntent(bitmap);
             } else if (requestCode == CAMERA_REQUEST) {
+                getContentResolver().notifyChange(mImageUri, null);
                 bitmap = setPic();
                 note.setBitmap(bitmap);
                 initChangeImageIntent(bitmap);
@@ -619,25 +665,6 @@ public class ChangeNoteActivity extends AppCompatActivity {
                 imageView.setImageBitmap(bitmap);
             }
         }
-    }
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File image = new File(Environment.getExternalStorageDirectory(),
-                imageFileName + ".jpg");
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
-
-    public String getRealPathFromURI(Uri uri) {
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-        cursor.moveToFirst();
-        int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-        return cursor.getString(idx);
     }
 
     private void initChangeImageIntent(Bitmap bitmap) {
@@ -650,11 +677,86 @@ public class ChangeNoteActivity extends AppCompatActivity {
         startActivityForResult(changeImageIntent, CHANGE_IMAGE_REQUEST);
     }
 
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+
+        File image = new File(storageDir.getAbsolutePath(), imageFileName + ".jpg");
+
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    private Bitmap setPicGallery(InputStream is) {
+        // Get the dimensions of the View
+        Display defaultDisplay = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+        int targetW = (int) (defaultDisplay.getWidth() / 1.5);
+        int targetH = (int) (defaultDisplay.getHeight() / 1.5);
+
+        Bitmap bitmap = BitmapFactory.decodeStream(is);
+
+        float zoomScale = Math.min(((float) targetW / bitmap.getWidth()), ((float) targetH / bitmap.getHeight()));
+        Matrix matrix = new Matrix();
+        matrix.postScale(zoomScale, zoomScale);
+
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+    }
+
+    private void initAlertDialogImage() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle(getString(R.string.title_alertdialog_image));
+
+        DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (which == 0) {
+                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    // Ensure that there's a camera activity to handle the intent
+                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                        // Create the File where the photo should go
+                        File photoFile = null;
+                        try {
+                            photoFile = createImageFile();
+                        } catch (IOException ex) {
+                            Log.e(getClass().getName(), ex.getMessage());
+                        }
+                        // Continue only if the File was successfully created
+                        if (photoFile != null) {
+                            mImageUri = Uri.fromFile(photoFile);
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                                    mImageUri);
+                            startActivityForResult(takePictureIntent, CAMERA_REQUEST);
+                        }
+                    }
+                } else if (which == 1) {
+                    Intent galleryIntent = new Intent();
+                    galleryIntent.setType("image/*");
+                    galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+                    startActivityForResult(Intent.createChooser(galleryIntent, "Select Picture"), GALLERY_REQUEST);
+                } else if (which == 2) {
+                    initChangeImageIntent(note.getBitmap());
+                }
+            }
+        };
+
+        if (!bitmapDefault.equals(note.getBitmap())) {
+            builder.setItems(R.array.load_image_and_change, clickListener);
+        } else {
+            builder.setItems(R.array.load_image, clickListener);
+        }
+
+        builder.show();
+
+    }
+
     private Bitmap setPic() {
         // Get the dimensions of the View
         Display defaultDisplay = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
-        int targetW = defaultDisplay.getWidth() / 5;
-        int targetH = defaultDisplay.getHeight() / 5;
+        int targetW = defaultDisplay.getWidth() / 2;
+        int targetH = defaultDisplay.getHeight() / 2;
 
         // Get the dimensions of the bitmap
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
@@ -674,49 +776,6 @@ public class ChangeNoteActivity extends AppCompatActivity {
         return BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
     }
 
-    private void initAlertDialogImage() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle(getString(R.string.title_alertdialog_image));
-
-        DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (which == 0) {
-                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                        File photoFile = null;
-                        try {
-                            photoFile = createImageFile();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        // Continue only if the File was successfully created
-                        if (photoFile != null) {
-                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                    Uri.fromFile(photoFile));
-                            startActivityForResult(takePictureIntent, CAMERA_REQUEST);
-                        }
-                    }
-                } else if (which == 1) {
-                    Intent galleryIntent = new Intent(Intent.ACTION_PICK);
-                    galleryIntent.setType("image/*");
-                    startActivityForResult(galleryIntent, GALLERY_REQUEST);
-                } else if (which == 2) {
-                    initChangeImageIntent(note.getBitmap());
-                }
-            }
-        };
-
-        if (!bitmapDefault.equals(note.getBitmap())) {
-            builder.setItems(R.array.load_image_and_change, clickListener);
-        } else {
-            builder.setItems(R.array.load_image, clickListener);
-        }
-
-        builder.show();
-
-    }
-
     private void initImage() {
         this.imageView = (CircleImageView) findViewById(R.id.imageNote);
         this.bitmapDefault = ((BitmapDrawable) getResources().getDrawable(R.drawable.account_circle)).getBitmap();
@@ -729,6 +788,7 @@ public class ChangeNoteActivity extends AppCompatActivity {
             this.imageView.setImageBitmap(bitmap);
         } else {
             this.note.setBitmap(bitmapDefault);
+            this.imageView.setImageBitmap(bitmapDefault);
         }
         this.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -739,135 +799,191 @@ public class ChangeNoteActivity extends AppCompatActivity {
     }
 
     private void initToolBarButtonSave() {
-        Button save = (Button) findViewById(R.id.toolBarSave);
-        save.setOnClickListener(new View.OnClickListener() {
+        this.save = (Button) findViewById(R.id.toolBarSave);
+        final TextView title = (TextView) findViewById(R.id.toolBarTitle);
+        this.save.setOnClickListener(new View.OnClickListener() {
+            boolean flag = edit;
+
             @Override
             public void onClick(View v) {
-                boolean save = true;
-                GregorianCalendar calendarWithCurrentDate = new GregorianCalendar();
-                Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-                int typeNote = spinnerTypeNote.getSelectedItemPosition();
-                String header = editTextHeader.getText().toString().trim();
-                String description = editTextDescription.getText().toString().trim();
-                String body = editTextBody.getText().toString().trim();
-                boolean regularly = switchRegularly.isChecked();
-                String date = editTextDate.getText().toString().trim();
-                String time = editTextTime.getText().toString().trim();
-                int idRemindOf = spinnerRemindOf.getSelectedItemPosition();
-                int priority = (int) ratingBarPriority.getRating();
+                if (flag) {
+                    boolean saveData = true;
+                    GregorianCalendar calendarWithCurrentDate = new GregorianCalendar();
+                    Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+                    int typeNote = spinnerTypeNote.getSelectedItemPosition();
+                    String header = editTextHeader.getText().toString().trim();
+                    String description = editTextDescription.getText().toString().trim();
+                    final String body = editTextBody.getText().toString().trim();
+                    boolean regularly = switchRegularly.isChecked();
+                    String date = editTextDate.getText().toString().trim();
+                    String time = editTextTime.getText().toString().trim();
+                    int idRemindOf = spinnerRemindOf.getSelectedItemPosition();
+                    int priority = (int) ratingBarPriority.getRating();
 
-                if (header.length() == 0) {
-                    save = false;
-                    editTextHeader.setError(getString(R.string.text_error_header));
-                }
-                if (description.length() == 0) {
-                    save = false;
-                    editTextDescription.setError(getString(R.string.text_error_description));
-                }
-                if (body.length() == 0) {
-                    save = false;
-                    editTextBody.setError(getString(R.string.text_error_body));
-                }
-                if (typeNote != TypeNote.Idea.getValue()) {
-                    if (typeNote == TypeNote.Todo.getValue()) {
-                        if (!regularly) {
+                    if (header.length() == 0) {
+                        saveData = false;
+                        inputLayoutHeader.setError(getString(R.string.text_error_header));
+                    }
+                    if (description.length() == 0) {
+                        saveData = false;
+                        inputLayoutDescription.setError(getString(R.string.text_error_description));
+                    }
+                    if (body.length() == 0) {
+                        saveData = false;
+                        inputLayoutBody.setError(getString(R.string.text_error_body));
+                    }
+                    if (typeNote != TypeNote.Idea.getValue()) {
+                        if (typeNote == TypeNote.Todo.getValue()) {
+                            if (!regularly) {
+                                if (date.length() == 0) {
+                                    saveData = false;
+                                    editTextDate.setError(getString(R.string.text_error_date));
+                                }
+                            } else {
+                                for (int i = 0; i < 7; i++) {
+                                    if (daysOfWeek[i].isChecked()) {
+                                        layoutDaysOfWeek.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+                                        break;
+                                    }
+                                    if (i == 6) {
+                                        layoutDaysOfWeek.setBackgroundColor(Color.RED);
+                                        saveData = false;
+                                    }
+                                }
+                            }
+                        } else {
                             if (date.length() == 0) {
-                                save = false;
+                                saveData = false;
                                 editTextDate.setError(getString(R.string.text_error_date));
                             }
+                        }
+                        if (time.length() == 0) {
+                            saveData = false;
+                            editTextTime.setError(getString(R.string.text_error_time));
+                        }
+                    }
+                    if (saveData) {
+                        if (bitmapDefault.equals(bitmap)) {
+                            note.setImage(new byte[0]);
+                            note.setImageCut(new byte[0]);
                         } else {
-                            for (int i = 0; i < 7; i++) {
-                                if (daysOfWeek[i].isChecked()) {
-                                    layoutDaysOfWeek.setBackgroundColor(getResources().getColor(R.color.colorWhite));
-                                    break;
-                                }
-                                if (i == 6) {
-                                    layoutDaysOfWeek.setBackgroundColor(Color.RED);
-                                    save = false;
-                                }
+                            if (!bitmap.equals(bitmapLoadCut)) {
+                                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                                note.setImageCut(stream.toByteArray());
+                            }
+                            if (!note.getBitmap().equals(bitmapLoad)) {
+                                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                                note.getBitmap().compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                                note.setImage(stream.toByteArray());
                             }
                         }
-                    } else {
-                        if (date.length() == 0) {
-                            save = false;
-                            editTextDate.setError(getString(R.string.text_error_date));
-                        }
-                    }
-                    if (time.length() == 0) {
-                        save = false;
-                        editTextTime.setError(getString(R.string.text_error_time));
-                    }
-                }
-                if (save) {
-                    if (bitmapDefault.equals(bitmap)) {
-                        note.setImage(new byte[0]);
-                        note.setImageCut(new byte[0]);
-                    } else {
-                        if (!bitmap.equals(bitmapLoadCut)) {
-                            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                            note.setImageCut(stream.toByteArray());
-                        }
-                        if (!note.getBitmap().equals(bitmapLoad)) {
-                            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                            note.getBitmap().compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                            note.setImage(stream.toByteArray());
-                        }
-                    }
-                    note.setTypeNote(TypeNote.getValue(typeNote));
-                    note.setHeader(header);
-                    note.setDescription(description);
-                    note.setBody(body);
-                    note.setFireDate(calendar.getTime());
-                    note.setTimeStamp(calendarWithCurrentDate.getTime());
-                    note.setRemindOf(remindOf[idRemindOf]);
-                    note.setPriority(Priority.getValue(priority));
-                    if (typeNote == TypeNote.Todo.getValue()) {
-                        note.setRegularly(regularly);
-                    } else {
-                        note.setRegularly(false);
-                    }
-                    if (typeNote == TypeNote.Idea.getValue()) {
-                        note.setPerformed(false);
-                    } else if (regularly) {
-                        note.setPerformed(false);
-                    } else {
-                        if (calendarWithCurrentDate.getTimeInMillis() > note.getFireDate().getTime()) {
-                            note.setPerformed(true);
+                        note.setTypeNote(TypeNote.getValue(typeNote));
+                        note.setHeader(header);
+                        note.setDescription(description);
+                        note.setBody(body);
+                        note.setFireDate(calendar.getTime());
+                        note.setTimeStamp(calendarWithCurrentDate.getTime());
+                        note.setRemindOf(remindOf[idRemindOf]);
+                        note.setPriority(Priority.getValue(priority));
+                        if (typeNote == TypeNote.Todo.getValue()) {
+                            note.setRegularly(regularly);
                         } else {
+                            note.setRegularly(false);
+                        }
+                        if (typeNote == TypeNote.Idea.getValue()) {
                             note.setPerformed(false);
-                        }
-                    }
-
-                    byte days = 0;
-                    int firstDay = calendar.getFirstDayOfWeek();
-                    for (int i = 0; i < 7; i++) {
-                        if (daysOfWeek[i].isChecked()) {
-                            if (firstDay == 2) {
-                                days = (byte) (days + Math.pow(2, 6 - i));
+                        } else if (regularly) {
+                            note.setPerformed(false);
+                        } else {
+                            if (calendarWithCurrentDate.getTimeInMillis() > note.getFireDate().getTime()) {
+                                note.setPerformed(true);
                             } else {
-                                if (i == 0) {
-                                    days = (byte) (days + Math.pow(2, 0));
+                                note.setPerformed(false);
+                            }
+                        }
+
+                        byte days = 0;
+                        int firstDay = calendar.getFirstDayOfWeek();
+                        for (int i = 0; i < 7; i++) {
+                            if (daysOfWeek[i].isChecked()) {
+                                if (firstDay == 2) {
+                                    days = (byte) (days + Math.pow(2, 6 - i));
                                 } else {
-                                    days = (byte) (days + Math.pow(2, 7 - i));
+                                    if (i == 0) {
+                                        days = (byte) (days + Math.pow(2, 0));
+                                    } else {
+                                        days = (byte) (days + Math.pow(2, 7 - i));
+                                    }
                                 }
                             }
                         }
-                    }
-                    note.setDaysOfWeek(days);
+                        note.setDaysOfWeek(days);
 
-                    if (revise) {
-                        noteDao.update(note);
-                    } else {
-                        noteDao.insert(note);
-                    }
+                        if (revise) {
+                            noteDao.update(note);
+                        } else {
+                            noteDao.insert(note);
+                        }
 
-                    initAlarmNotification();
-                    setResult(RESULT_OK);
-                    finish();
+                        initAlarmNotification();
+
+                        if (edit) {
+                            setResult(RESULT_OK);
+                            finish();
+                            overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
+                        } else {
+                            finish();
+                            Intent intent = new Intent(activity, SplashScreenActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            activity.startActivity(intent);
+                            overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
+                        }
+                    }
+                } else {
+                    title.setText(R.string.revise_note);
+                    save.setText(R.string.text_save);
+                    cancel.setText(R.string.text_cancel);
+                    imageView.setEnabled(true);
+                    spinnerTypeNote.setEnabled(true);
+                    editTextHeader.setEnabled(true);
+                    switchRegularly.setEnabled(true);
+                    editTextDescription.setEnabled(true);
+                    editTextBody.setEnabled(true);
+                    editTextDate.setEnabled(true);
+                    editTextTime.setEnabled(true);
+                    spinnerRemindOf.setEnabled(true);
+                    ratingBarPriority.setEnabled(true);
+                    for (ToggleButton button : daysOfWeek) {
+                        button.setEnabled(true);
+                    }
+                    flag = true;
+                    revise = true;
+                    editTextHeader.requestFocus();
                 }
             }
         });
+
+        if (!this.edit) {
+            this.containerNote.setFocusable(true);
+            this.containerNote.setFocusableInTouchMode(true);
+            title.setText(R.string.text_information);
+            this.save.setText(R.string.text_edit);
+            this.cancel.setText(R.string.text_ok);
+            this.imageView.setEnabled(false);
+            this.spinnerTypeNote.setEnabled(false);
+            this.editTextHeader.setEnabled(false);
+            this.editTextDescription.setEnabled(false);
+            this.switchRegularly.setEnabled(false);
+            this.editTextBody.setEnabled(false);
+            this.editTextDate.setEnabled(false);
+            this.editTextTime.setEnabled(false);
+            this.spinnerRemindOf.setEnabled(false);
+            this.ratingBarPriority.setEnabled(false);
+            for (ToggleButton button : daysOfWeek) {
+                button.setEnabled(false);
+            }
+        }
     }
 
     private void initAlarmNotification() {
@@ -971,8 +1087,8 @@ public class ChangeNoteActivity extends AppCompatActivity {
     }
 
     private void initToolBarButtonCancel() {
-        Button cancel = (Button) findViewById(R.id.toolBarCancel);
-        cancel.setOnClickListener(new View.OnClickListener() {
+        this.cancel = (Button) findViewById(R.id.toolBarCancel);
+        this.cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onBackPressed();
@@ -1041,13 +1157,33 @@ public class ChangeNoteActivity extends AppCompatActivity {
             builder.setPositiveButton(getString(R.string.text_yes), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    setResult(RESULT_CANCELED);
-                    finish();
+                    if (edit) {
+                        setResult(RESULT_CANCELED);
+                        finish();
+                        overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
+                    } else {
+                        finish();
+                        Intent intent = new Intent(activity, SplashScreenActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        activity.startActivity(intent);
+                        overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
+                    }
                 }
             });
             builder.create().show();
         } else {
-            finish();
+
+            if (edit) {
+                setResult(RESULT_CANCELED);
+                finish();
+                overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
+            } else {
+                finish();
+                Intent intent = new Intent(activity, SplashScreenActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                activity.startActivity(intent);
+                overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
+            }
         }
     }
 }

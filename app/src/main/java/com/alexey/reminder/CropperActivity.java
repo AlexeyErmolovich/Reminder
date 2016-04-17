@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
@@ -70,37 +69,12 @@ public class CropperActivity extends AppCompatActivity {
                     ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
                     layoutParams.width = bitmapOriginal.getWidth();
                     layoutParams.height = bitmapOriginal.getHeight();
-                    zoomHeight = layoutParams.height / 90;
-                    zoomWidth = layoutParams.width / 90;
+                    zoomHeight = layoutParams.height / 50;
+                    zoomWidth = layoutParams.width / 50;
                     imageView.setLayoutParams(layoutParams);
                 }
             }
-        }, 500);
-
-        /*CountDownTimer timer = new CountDownTimer(100, 100) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-            }
-
-            @Override
-            public void onFinish() {
-                leftCrop = cropView.getLeft();
-                topCrop = cropView.getTop();
-                widthCrop = cropView.getWidth();
-                if (leftCrop != 0 && topCrop != 0) {
-                    layoutImage.setPadding(leftCrop, topCrop, leftCrop, topCrop);
-                    ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
-                    layoutParams.width = bitmapOriginal.getWidth();
-                    layoutParams.height = bitmapOriginal.getHeight();
-                    zoomHeight = layoutParams.height / 90;
-                    zoomWidth = layoutParams.width / 90;
-                    imageView.setLayoutParams(layoutParams);
-                } else {
-                    start();
-                }
-            }
-        };
-        timer.start();*/
+        }, 700);
     }
 
     @Override
@@ -213,6 +187,8 @@ public class CropperActivity extends AppCompatActivity {
                                         layoutParamsImage.width = MAX_WIDTH;
                                         layoutParamsImage.height -= zoomHeight;
                                     }
+                                    zoomHeight = layoutParamsImage.height / 50;
+                                    zoomWidth = layoutParamsImage.width / 50;
                                     imageView.setLayoutParams(layoutParamsImage);
                                 }
                             }
@@ -253,7 +229,7 @@ public class CropperActivity extends AppCompatActivity {
         try {
             cropped = Bitmap.createBitmap(bitmap, (int) x, (int) y, widthCrop, widthCrop);
         } catch (IllegalArgumentException e) {
-            cropped = Bitmap.createBitmap(bitmap, (int) x, (int) y, widthCrop - 100, widthCrop - 100);
+            cropped = Bitmap.createBitmap(bitmap, (int) x, (int) y, widthCrop - 50, widthCrop - 50);
         }
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         cropped.compress(Bitmap.CompressFormat.JPEG, 100, stream);

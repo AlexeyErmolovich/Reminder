@@ -1,12 +1,12 @@
 package com.alexey.reminder;
 
+import android.animation.Animator;
+import android.animation.LayoutTransition;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -19,7 +19,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -28,15 +28,18 @@ import com.alexey.reminder.model.DaoMaster;
 import com.alexey.reminder.model.DaoSession;
 import com.alexey.reminder.model.Note;
 import com.alexey.reminder.model.NoteDao;
+import com.alexey.reminder.model.PriorityEnum.Priority;
 import com.alexey.reminder.model.TypeNoteEnum.TypeNote;
 
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -44,11 +47,19 @@ import java.util.concurrent.ExecutionException;
  */
 public class NoteAdapter extends BaseAdapter {
 
+    private final int SHOW_INFO = 1;
+    private final int HIDE_INFO = 2;
+    private final int NONE_INFO = 3;
+
+    private final int DURATION = 300;
+
     private AppCompatActivity activity;
     private List<Note> noteList;
     private NoteDao noteDao;
     private LayoutInflater inflater;
+    private ListView listView;
     private boolean update;
+    private boolean[] updates;
 
     private long[] remindOf = {0, 60000, 300000, 600000, 900000, 1200000, 1500000, 1800000, 2700000, 3600000,
             7200000, 10800000, 14400000, 18000000, 36000000, 540000000, 72000000, 86400000};
@@ -76,8 +87,16 @@ public class NoteAdapter extends BaseAdapter {
 
     public NoteAdapter(AppCompatActivity activity) {
         this.activity = activity;
+        this.listView = (ListView) activity.findViewById(R.id.listViewMain);
         this.inflater = (LayoutInflater) this.activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.update = false;
+
+        DaoMaster.OpenHelper helper = new DaoMaster.DevOpenHelper(activity, "Note", null);
+        SQLiteDatabase db = helper.getWritableDatabase();
+        helper.onUpgrade(db, db.getVersion(), DaoMaster.SCHEMA_VERSION);
+        DaoMaster daoMaster = new DaoMaster(db);
+        DaoSession session = daoMaster.newSession();
+        noteDao = session.getNoteDao();
         this.loadData();
     }
 
@@ -92,6 +111,10 @@ public class NoteAdapter extends BaseAdapter {
             e.printStackTrace();
         }
         initSortNotes();
+        this.updates = new boolean[this.noteList.size()];
+        for (int i = 0; i < updates.length; i++) {
+            updates[i] = false;
+        }
     }
 
     private void initSortNotes() {
@@ -101,6 +124,7 @@ public class NoteAdapter extends BaseAdapter {
     }
 
     static class ViewHolder {
+        int position;
         LinearLayout layoutItemListView;
 
         ImageView imageView;
@@ -137,25 +161,30 @@ public class NoteAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         final ViewHolder holder;
+        final Note note = (Note) getItem(position);
         if (convertView == null) {
             convertView = this.inflater.inflate(R.layout.item_listview, parent, false);
-            holder = getViewHolder(convertView);
+            holder = getViewHolder(convertView, position);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        final Note note = (Note) getItem(position);
-
-        if (update) {
-            update = false;
-            note.setShowInfo(false);
+        holder.position = position;
+        if (updates[position]) {
+            note.setShowInfo(HIDE_INFO);
+            updates[position] = false;
         }
 
-        if (note.isShowInfo()) {
-            initViewDown(holder, note);
-        } else {
+        if (note.getShowInfo() == SHOW_INFO) {
             removeViewInItem(holder);
+            initViewDown(holder, note);
+        } else if (note.getShowInfo() == HIDE_INFO) {
+            removeViewInItem(holder);
+        } else {
+            holder.layoutItemListView.removeView(holder.itemDownBody);
+            holder.layoutItemListView.removeView(holder.itemDownDate);
+            holder.layoutItemListView.removeView(holder.itemDownRegularlyDate);
         }
 
         convertView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -169,14 +198,20 @@ public class NoteAdapter extends BaseAdapter {
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (note.isShowInfo()) {
-                    holder.opened = holder.currentView.getHeight() - 12;
+                if (note.getShowInfo() == SHOW_INFO) {
+                    holder.opened = holder.currentView.getHeight();
                     holder.layoutItemListView.setMinimumHeight(holder.opened);
                     removeViewInItem(holder);
-                    note.setShowInfo(false);
+                    note.setShowInfo(HIDE_INFO);
                 } else {
                     initViewDown(holder, note);
-                    note.setShowInfo(true);
+                    holder.layoutItemListView.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            listView.smoothScrollToPosition(holder.position);
+                        }
+                    }, DURATION + 50);
+                    note.setShowInfo(SHOW_INFO);
                 }
             }
         });
@@ -208,6 +243,7 @@ public class NoteAdapter extends BaseAdapter {
                     initViewDownDate(holder, note);
                 }
             }
+
         } catch (Exception e) {
             Log.v(getClass().getName(), e.getMessage());
         }
@@ -229,6 +265,7 @@ public class NoteAdapter extends BaseAdapter {
         final int firstDay = calendar.getFirstDayOfWeek();
 
         for (int i = 0; i < 7; i++) {
+            daysOfWeek[i].setChecked(false);
             daysOfWeek[i].setText(getShortDayName(i + firstDay));
             daysOfWeek[i].setTextOn(getShortDayName(i + firstDay));
             daysOfWeek[i].setTextOff(getShortDayName(i + firstDay));
@@ -280,7 +317,7 @@ public class NoteAdapter extends BaseAdapter {
         holder.layoutItemListView.addView(holder.itemDownDate);
     }
 
-    private void initViewDownBody(ViewHolder holder, Note note) {
+    private void initViewDownBody(final ViewHolder holder, Note note) {
         TextView textViewBody = (TextView) holder.itemDownBody.findViewById(R.id.textViewBody);
         AppCompatRatingBar ratingBar = (AppCompatRatingBar) holder.itemDownBody.findViewById(R.id.smallRatingBar);
 
@@ -302,15 +339,15 @@ public class NoteAdapter extends BaseAdapter {
         TypeNote noteType = note.getTypeNote();
         if (noteType == TypeNote.Todo) {
             holder.layoutTypeNote.setBackgroundColor(activity.getResources().getColor(R.color.colorTodoDark));
-            holder.textViewTypeNote.setText(noteType.toString());
+            holder.textViewTypeNote.setText(activity.getResources().getString(R.string.todo));
             holder.textViewTypeNote.setTextColor(activity.getResources().getColor(R.color.colorTodo));
         } else if (noteType == TypeNote.Birthday) {
             holder.layoutTypeNote.setBackgroundColor(activity.getResources().getColor(R.color.colorBirthdaysDark));
-            holder.textViewTypeNote.setText(noteType.toString());
+            holder.textViewTypeNote.setText(activity.getResources().getString(R.string.birthday));
             holder.textViewTypeNote.setTextColor(activity.getResources().getColor(R.color.colorBirthdays));
         } else if (noteType == TypeNote.Idea) {
             holder.layoutTypeNote.setBackgroundColor(activity.getResources().getColor(R.color.colorIdeasDark));
-            holder.textViewTypeNote.setText(noteType.toString());
+            holder.textViewTypeNote.setText(activity.getResources().getString(R.string.idea));
             holder.textViewTypeNote.setTextColor(activity.getResources().getColor(R.color.colorIdeas));
         }
     }
@@ -329,15 +366,43 @@ public class NoteAdapter extends BaseAdapter {
                 holder.layoutItemListView.requestLayout();
             }
         });
+        va.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (holder.opened != 0) {
+                    listView.smoothScrollToPosition(holder.position);
+                    holder.opened = 0;
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
         va.start();
 
     }
 
     @NonNull
-    private ViewHolder getViewHolder(View convertView) {
+    private ViewHolder getViewHolder(View convertView, int position) {
         ViewHolder holder;
         holder = new ViewHolder();
         holder.layoutItemListView = (LinearLayout) convertView.findViewById(R.id.containerItemListView);
+        LayoutTransition layoutTransition = holder.layoutItemListView.getLayoutTransition();
+        layoutTransition.setDuration(DURATION);
+        holder.layoutItemListView.setLayoutTransition(layoutTransition);
+
         holder.imageView = (ImageView) convertView.findViewById(R.id.imageNote);
         holder.textViewHeader = (TextView) convertView.findViewById(R.id.textViewHeader);
         holder.textViewDescription = (TextView) convertView.findViewById(R.id.textViewDescription);
@@ -355,17 +420,29 @@ public class NoteAdapter extends BaseAdapter {
 
     private void initAlertDialog(final Note note) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle("What to do?");
-        builder.setItems(new String[]{"Change note", "Delete note"}, new DialogInterface.OnClickListener() {
+        builder.setTitle(activity.getResources().getString(R.string.title_alertdialog_image));
+        builder.setItems(new String[]{activity.getResources().getString(R.string.text_change_note),
+                activity.getResources().getString(R.string.delete_note)}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (which == 0) {
                     Intent intent = new Intent(activity, ChangeNoteActivity.class);
                     intent.putExtra("NoteUUID", note.getUuid());
+                    intent.putExtra("edit", true);
                     activity.startActivityForResult(intent, 4);
+                    activity.overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
                 } else if (which == 1) {
-                    noteDao.delete(note);
-                    notifyDataSetChanged();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                    builder.setMessage(activity.getString(R.string.text_are_you_sure));
+                    builder.setNegativeButton(activity.getString(R.string.text_no), null);
+                    builder.setPositiveButton(activity.getString(R.string.text_yes), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            noteDao.delete(note);
+                            updateList();
+                        }
+                    });
+                    builder.create().show();
                 }
             }
         });
@@ -374,8 +451,11 @@ public class NoteAdapter extends BaseAdapter {
 
     public void updateList() {
         this.loadData();
-        this.update = true;
+        for (int i = 0; i < updates.length; i++) {
+            updates[i] = true;
+        }
         this.notifyDataSetChanged();
+
     }
 
     private static String getShortDayName(int day) {
@@ -409,7 +489,9 @@ public class NoteAdapter extends BaseAdapter {
             e.printStackTrace();
         }
         initSortNotes();
-        this.update = true;
+        for (int i = 0; i < updates.length; i++) {
+            updates[i] = true;
+        }
         this.notifyDataSetChanged();
     }
 }

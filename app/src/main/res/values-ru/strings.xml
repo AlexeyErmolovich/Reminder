@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Reminder</string>
+    <string name="birthday">Праздник</string>
+    <string name="delete_note">Удалить заметку</string>
+    <string name="exception_not_found">Чтобы добавить Заметку, нажмите на плюс.</string>
+    <string name="exception_search_not_found">Поиск не дал результата</string>
+    <string name="menu_search">Найти</string>
+    <string name="new_note">Добавление</string>
+    <string name="notification_birthday">Не забудьте поздравить с днем рождения</string>
+    <string name="notification_todo">Вы запланировали действия</string>
+    <string name="question_save">Выйти без сохранения?</string>
+    <string name="revise_note">Изменение</string>
+    <string name="text_body">Содержимое</string>
+    <string name="text_cancel">Отмена</string>
+    <string name="text_change_image">Изменить изображение</string>
+    <string name="text_change_note">Изменить заметку</string>
+    <string name="text_date">Дата</string>
+    <string name="idea">Идея</string>
+    <string name="text_description">Краткое описание</string>
+    <string name="text_error_body">Введите содержимое!</string>
+    <string name="text_error_date">Введите дату!</string>
+    <string name="text_error_description">Введите краткое описание!</string>
+    <string name="text_error_header">Введите заголовок!</string>
+    <string name="text_error_time">Введите время!</string>
+    <string name="text_fire_date">Время срабатывания</string>
+    <string name="text_header">Заголовок</string>
+    <string name="text_load_gallery">Загрузить из галереи</string>
+    <string name="text_make_photo">Сделать фотографию</string>
+    <string name="text_no">Нет</string>
+    <string name="text_ok">Хорошо</string>
+    <string name="text_priority">Приоритет</string>
+    <string name="text_regularly">Регулярно</string>
+    <string name="text_remindof">Напомнить за</string>
+    <string name="text_save">Сохранить</string>
+    <string name="text_time">Время</string>
+    <string name="text_type_note">Тип заметки</string>
+    <string name="text_yes">Да</string>
+    <string name="title_alertdialog_image">Что делаем?</string>
+    <string name="todo">Действие</string>
+
+    <string-array name="load_image_and_change">
+        <item>Сделать фотографию</item>
+        <item>Загрузить из галереи</item>
+        <item>Изменить изображение</item>
+    </string-array>
+
+    <string-array name="load_image">
+        <item>Сделать фотографию</item>
+        <item>Загрузить из галереи</item>
+    </string-array>
+
+    <string-array name="notes">
+        <item>Праздник</item>
+        <item>Действие</item>
+        <item>Идея</item>
+    </string-array>
+
+    <string-array name="remind_of">
+        <item>нет спасибо</item>
+        <item>1 минуту</item>
+        <item>5 минут</item>
+        <item>10 минут</item>
+        <item>15 минут</item>
+        <item>20 минут</item>
+        <item>25 минут</item>
+        <item>30 минут</item>
+        <item>45 минут</item>
+        <item>1 час</item>
+        <item>2 часа</item>
+        <item>3 часа</item>
+        <item>4 часа</item>
+        <item>5 часов</item>
+        <item>10 часов</item>
+        <item>15 часов</item>
+        <item>20 часов</item>
+        <item>1 день</item>
+    </string-array>
+    <string name="text_edit">Изменить</string>
+    <string name="text_information">Информация</string>
+    <string name="text_are_you_sure">Вы уверены?</string>
+    <string name="text_exception_maxLines">Лимит ограничен!</string>
+</resources>

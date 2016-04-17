@@ -39,6 +39,8 @@ public class LoadDataAsyncTask extends AsyncTask<Void, Void, List<Note>> {
         DaoSession session = daoMaster.newSession();
         NoteDao noteDao = session.getNoteDao();
         List<Note> noteList = noteDao.loadAll();
+        session.clear();
+        db.close();
 
         for (Note note : noteList) {
             Bitmap bitmap = null;
@@ -46,7 +48,7 @@ public class LoadDataAsyncTask extends AsyncTask<Void, Void, List<Note>> {
                 bitmap = BitmapFactory.decodeByteArray(note.getImageCut(), 0, note.getImageCut().length);
             }
             note.setBitmap(bitmap);
-            note.setShowInfo(false);
+            note.setShowInfo(3);
         }
 
         return noteList;

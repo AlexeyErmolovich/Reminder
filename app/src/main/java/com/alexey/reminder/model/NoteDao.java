@@ -60,7 +60,7 @@ public class NoteDao extends AbstractDao<Note, String> {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"NOTE\" (" + //
                 "\"UUID\" TEXT PRIMARY KEY NOT NULL ," + // 0: uuid
-                "\"HEADER\" TEXT NOT NULL ," + // 1: header
+                "\"HEADER\" TEXT NOT NULL," + // 1: header
                 "\"DESCRIPTION\" TEXT NOT NULL ," + // 2: description
                 "\"BODY\" TEXT NOT NULL ," + // 3: body
                 "\"TIME_STAMP\" INTEGER NOT NULL ," + // 4: timeStamp

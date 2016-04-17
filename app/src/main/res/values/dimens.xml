@@ -3,11 +3,19 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    <dimen name="item_listview_padding">3dp</dimen>
+    <dimen name="item_listView_paddingLeft">16dp</dimen>
+    <dimen name="item_listView_paddingRight">16dp</dimen>
+    <dimen name="item_listView_paddingTop">8dp</dimen>
+    <dimen name="item_listView_paddingBottom">8dp</dimen>
+
+    <dimen name="item_listView_marginLeft">16dp</dimen>
+    <dimen name="item_listView_marginRight">16dp</dimen>
+    <dimen name="item_listView_marginTop">8dp</dimen>
+    <dimen name="item_listView_marginBottom">8dp</dimen>
 
     <dimen name="image_width">100dp</dimen>
     <dimen name="image_height">100dp</dimen>
 
-    <dimen name="image_width_listview">60dp</dimen>
-    <dimen name="image_height_listview">60dp</dimen>
+    <dimen name="image_width_listview">40dp</dimen>
+    <dimen name="image_height_listview">40dp</dimen>
 </resources>

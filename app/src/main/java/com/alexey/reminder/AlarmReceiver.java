@@ -1,5 +1,6 @@
 package com.alexey.reminder;
 
+import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -9,6 +10,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
+import android.os.Build;
+import android.speech.tts.TextToSpeech;
+import android.util.Log;
 
 import com.alexey.reminder.model.DaoMaster;
 import com.alexey.reminder.model.DaoSession;
@@ -25,6 +29,10 @@ import java.util.Locale;
  * Created by Alexey on 31.03.2016.
  */
 public class AlarmReceiver extends BroadcastReceiver {
+
+    private TextToSpeech tts;
+
+    @TargetApi(Build.VERSION_CODES.M)
     @Override
     public void onReceive(Context context, Intent intent) {
         String uuid = intent.getStringExtra("NoteUUID");
@@ -42,9 +50,11 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Intent intentJump = new Intent(context, SplashScreenActivity.class);
-        intentJump.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intentJump, Intent.FILL_IN_ACTION);
+        Intent intentJump = new Intent(context, ChangeNoteActivity.class);
+        intentJump.putExtra("NoteUUID", note.getUuid());
+        intentJump.putExtra("edit", false);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, note.getUuid().hashCode(), intentJump,
+                PendingIntent.FLAG_UPDATE_CURRENT);
 
         Notification.Builder builder = new Notification.Builder(context);
 
@@ -150,8 +160,13 @@ public class AlarmReceiver extends BroadcastReceiver {
                 }
             }
         }
+
         Notification notification = builder.build();
-        notification.defaults = Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE;
+        notification.defaults = Notification.DEFAULT_VIBRATE;
+
+        Intent textToSpeech = new Intent(context, TextToSpeechService.class);
+        textToSpeech.putExtra("text", note.getHeader());
+        context.startService(textToSpeech);
         manager.notify(note.getUuid().hashCode(), notification);
     }
 

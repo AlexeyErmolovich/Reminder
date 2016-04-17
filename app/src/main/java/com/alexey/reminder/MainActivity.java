@@ -1,34 +1,38 @@
 package com.alexey.reminder;
 
 import android.annotation.TargetApi;
-import android.app.NotificationManager;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.ListViewCompat;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AbsListView;
+import android.widget.Button;
+import android.widget.ListView;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     private final int NOTE_ADD = 1;
-    private AppCompatActivity activity;
     private NoteAdapter adapter;
+    private static final int REQUEST_CODE = 150;
+    private TextToSpeech tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.cancelAll();
-        this.activity = this;
+
         initToolBar();
         initListView();
     }
@@ -42,36 +46,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initListView() {
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final com.melnykov.fab.FloatingActionButton fab = (com.melnykov.fab.FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), ChangeNoteActivity.class);
                 intent.putExtra("NoteUUID", "");
+                intent.putExtra("edit", true);
                 startActivityForResult(intent, NOTE_ADD);
+                overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
             }
         });
         this.adapter = new NoteAdapter(this);
 
-        ListViewCompat listView = (ListViewCompat) findViewById(R.id.listViewMain);
+        ListView listView = (ListView) findViewById(R.id.listViewMain);
         listView.setAdapter(this.adapter);
-        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {
-
-                if (scrollState == SCROLL_STATE_FLING) {
-                    fab.hide();
-                }
-                if (scrollState == SCROLL_STATE_IDLE) {
-                    fab.show();
-                }
-            }
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-
-            }
-        });
+        fab.attachToListView(listView);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -98,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                if(newText.length() == 0){
+                if (newText.length() == 0) {
                     adapter.updateList();
                 }
                 return false;
@@ -116,6 +106,4 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-
 }

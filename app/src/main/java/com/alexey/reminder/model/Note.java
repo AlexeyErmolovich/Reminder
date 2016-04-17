@@ -1,10 +1,10 @@
 package com.alexey.reminder.model;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 
+import com.alexey.reminder.SearchCursorWrapper;
 import com.alexey.reminder.model.PriorityEnum.Priority;
 import com.alexey.reminder.model.TypeNoteEnum.TypeNote;
 
@@ -46,7 +46,7 @@ public class Note {
     private TypeNote typeNote;
 
     private Bitmap bitmap;
-    private boolean showInfo;
+    private int showInfo;
 
     public Note() {
     }
@@ -216,55 +216,26 @@ public class Note {
         this.bitmap = bitmap;
     }
 
-    public boolean isShowInfo() {
+    public int getShowInfo() {
         return showInfo;
     }
 
-    public void setShowInfo(boolean showInfo) {
+    public void setShowInfo(int showInfo) {
         this.showInfo = showInfo;
     }
 
-    public static List<Note> getNotesOnItsHeader(NoteDao noteDao, String header) {
+
+    public static List<Note> getNotesInSearch(NoteDao noteDao, String search) {
         List<Note> res = new ArrayList<>();
-        String query = "SELECT * FROM NOTE WHERE HEADER LIKE '%" + header + "%'";
+        String query = "SELECT * FROM NOTE";
         SQLiteDatabase db = noteDao.getDatabase();
         Cursor cursor = db.rawQuery(query, null);
-
-        if (cursor.moveToFirst()) {
+        SearchCursorWrapper cursorWrapper = new SearchCursorWrapper(cursor, search);
+        if (cursorWrapper.moveToFirst()) {
             do {
-                Note note = noteDao.readEntity(cursor, 0);
+                Note note = noteDao.readEntity(cursorWrapper, 0);
                 res.add(note);
-            } while (cursor.moveToNext());
-        }
-        return res;
-    }
-
-    public static List<Note> getNotesOnItsDescription(NoteDao noteDao, String description) {
-        List<Note> res = new ArrayList<>();
-        String query = "SELECT * FROM NOTE WHERE DESCRIPTION LIKE '%" + description + "%'";
-        SQLiteDatabase db = noteDao.getDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                Note note = noteDao.readEntity(cursor, 0);
-                res.add(note);
-            } while (cursor.moveToNext());
-        }
-        return res;
-    }
-
-    public static List<Note> getNotesOnItsBody(NoteDao noteDao, String body) {
-        List<Note> res = new ArrayList<>();
-        String query = "SELECT * FROM NOTE WHERE BODY LIKE '%" + body + "%'";
-        SQLiteDatabase db = noteDao.getDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                Note note = noteDao.readEntity(cursor, 0);
-                res.add(note);
-            } while (cursor.moveToNext());
+            } while (cursorWrapper.moveToNext());
         }
         return res;
     }

@@ -9,16 +9,15 @@
         android:id="@+id/line"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="5dp"
         android:background="@color/colorGrey" />
 
     <TextView
         android:id="@+id/textViewBody"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
+        android:layout_marginLeft="@dimen/item_listView_marginLeft"
+        android:layout_marginRight="@dimen/item_listView_marginRight"
+        android:layout_marginTop="@dimen/item_listView_marginTop"
         android:alpha="0.75"
         android:text="@string/text_description"
         android:textColor="@color/colorBlack" />
@@ -27,16 +26,16 @@
         android:id="@+id/layoutDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginRight="5dp">
+        android:layout_marginLeft="@dimen/item_listView_marginLeft"
+        android:layout_marginRight="@dimen/item_listView_marginRight"
+        android:layout_marginTop="5dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:alpha="0.75"
-            android:maxLines="3"
             android:layout_alignParentLeft="true"
+            android:alpha="0.75"
+            android:maxLines="1"
             android:text="@string/text_date"
             android:textColor="@color/colorBlack" />
 
@@ -44,9 +43,9 @@
             android:id="@+id/textViewDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:alpha="0.75"
-            android:maxLines="3"
             android:layout_alignParentRight="true"
+            android:alpha="0.75"
+            android:maxLines="1"
             android:text="@string/text_date"
             android:textColor="@color/colorBlack" />
 
@@ -56,16 +55,16 @@
         android:id="@+id/layoutTime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginRight="5dp">
+        android:layout_marginLeft="@dimen/item_listView_marginLeft"
+        android:layout_marginRight="@dimen/item_listView_marginRight"
+        android:layout_marginTop="5dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:alpha="0.75"
-            android:maxLines="3"
             android:layout_alignParentLeft="true"
+            android:alpha="0.75"
+            android:maxLines="1"
             android:text="@string/text_time"
             android:textColor="@color/colorBlack" />
 
@@ -73,9 +72,9 @@
             android:id="@+id/textViewTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:alpha="0.75"
-            android:maxLines="3"
             android:layout_alignParentRight="true"
+            android:alpha="0.75"
+            android:maxLines="1"
             android:text="@string/text_time"
             android:textColor="@color/colorBlack" />
 
@@ -85,16 +84,16 @@
         android:id="@+id/layoutRemindOf"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginLeft="5dp">
+        android:layout_marginLeft="@dimen/item_listView_marginLeft"
+        android:layout_marginRight="@dimen/item_listView_marginRight"
+        android:layout_marginTop="5dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:alpha="0.75"
-            android:maxLines="3"
             android:layout_alignParentLeft="true"
+            android:alpha="0.75"
+            android:maxLines="1"
             android:text="@string/text_remindof"
             android:textColor="@color/colorBlack" />
 
@@ -102,9 +101,9 @@
             android:id="@+id/textViewRemindOf"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:alpha="0.75"
-            android:maxLines="3"
             android:layout_alignParentRight="true"
+            android:alpha="0.75"
+            android:maxLines="1"
             android:text="@string/text_remindof"
             android:textColor="@color/colorBlack" />
 
@@ -113,10 +112,13 @@
     <android.support.v7.widget.AppCompatRatingBar
         android:id="@+id/smallRatingBar"
         style="?android:attr/ratingBarStyleSmall"
-        android:layout_margin="5dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="@dimen/item_listView_marginLeft"
+        android:layout_marginRight="@dimen/item_listView_marginRight"
+        android:layout_marginBottom="@dimen/item_listView_marginBottom"
         android:numStars="5"
         android:stepSize="1.0" />
 
