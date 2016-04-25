@@ -34,7 +34,7 @@
                     android:maxWidth="@dimen/image_width_listview"
                     android:minHeight="@dimen/image_height_listview"
                     android:minWidth="@dimen/image_width_listview"
-                    android:background="@color/colorWhite"
+                    android:background="@drawable/circle_button_uncheck"
                     android:src="@drawable/account_circle" />
 
                 <LinearLayout

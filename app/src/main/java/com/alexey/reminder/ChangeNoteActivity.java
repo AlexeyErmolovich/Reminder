@@ -50,6 +50,7 @@ import com.alexey.reminder.model.Note;
 import com.alexey.reminder.model.NoteDao;
 import com.alexey.reminder.model.PriorityEnum.Priority;
 import com.alexey.reminder.model.TypeNoteEnum.TypeNote;
+import com.alexey.reminder.receiver.AlarmReceiver;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

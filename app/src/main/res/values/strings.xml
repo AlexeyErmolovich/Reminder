@@ -41,7 +41,7 @@
     <string name="text_edit">Edit</string>
     <string name="text_information">Information</string>
     <string name="text_are_you_sure">Are you sure?</string>
-    <string name="text_exception_maxLines">Limit limited!</string>
+    <string name="text_exception_maxLines">Limit is reached!</string>
 
 
     <string-array name="load_image_and_change">
@@ -81,4 +81,12 @@
         <item>20 hour</item>
         <item>1 day</item>
     </string-array>
+
+    <string name="settings">Settings</string>
+    <string name="text_vibration">Vibration</string>
+    <string name="text_text_speech">Text speech</string>
+    <string name="text_send_email">Send email to support service</string>
+    <string name="send_comment">Leave your comment…</string>
+    <string name="text_support_service">Support Service</string>
+    <string name="text_notification">Notification</string>
 </resources>

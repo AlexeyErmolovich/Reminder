@@ -11,9 +11,9 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:background="?android:selectableItemBackground"
+        android:textAlignment="viewStart"
         android:paddingLeft="@dimen/activity_vertical_margin"
         android:text="@string/text_cancel"
-        android:textAlignment="viewStart"
         android:textColor="@color/colorWhite" />
 
     <TextView
@@ -28,7 +28,7 @@
         android:textAlignment="center"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@color/colorWhite"
-        android:textSize="24dp" />
+        android:textSize="20dp" />
 
     <Button
         android:id="@+id/toolBarSave"
@@ -38,8 +38,8 @@
         android:layout_alignParentTop="true"
         android:background="?android:selectableItemBackground"
         android:paddingRight="@dimen/activity_horizontal_margin"
-        android:text="@string/text_save"
         android:textAlignment="viewEnd"
+        android:text="@string/text_save"
         android:textAllCaps="true"
         android:textColor="@color/colorWhite" />
 

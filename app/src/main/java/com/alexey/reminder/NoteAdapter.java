@@ -24,22 +24,21 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.alexey.reminder.aynctask.LoadDataAsyncTask;
+import com.alexey.reminder.aynctask.SearchNotesAsyncTask;
 import com.alexey.reminder.model.DaoMaster;
 import com.alexey.reminder.model.DaoSession;
 import com.alexey.reminder.model.Note;
 import com.alexey.reminder.model.NoteDao;
-import com.alexey.reminder.model.PriorityEnum.Priority;
 import com.alexey.reminder.model.TypeNoteEnum.TypeNote;
 
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -51,7 +50,7 @@ public class NoteAdapter extends BaseAdapter {
     private final int HIDE_INFO = 2;
     private final int NONE_INFO = 3;
 
-    private final int DURATION = 300;
+    private final int DURATION = 200;
 
     private AppCompatActivity activity;
     private List<Note> noteList;

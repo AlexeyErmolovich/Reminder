@@ -72,6 +72,21 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setSubtitleTextColor(getResources().getColor(R.color.colorWhite));
         toolbar.inflateMenu(R.menu.menu);
         initItemSearchToolBar(toolbar);
+        initItemSettingsToolBar(toolbar);
+    }
+
+    private void initItemSettingsToolBar(Toolbar toolbar) {
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if(item.getItemId()==R.id.menu_item_settings){
+                    Intent settings = new Intent(getApplicationContext(), SettingsActivity.class);
+                    startActivity(settings);
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     private void initItemSearchToolBar(Toolbar toolbar) {

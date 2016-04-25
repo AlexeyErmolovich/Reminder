@@ -80,4 +80,11 @@
     <string name="text_information">Информация</string>
     <string name="text_are_you_sure">Вы уверены?</string>
     <string name="text_exception_maxLines">Лимит ограничен!</string>
+    <string name="settings">Настройки</string>
+    <string name="text_send_email">Отправить email в службу поддержки</string>
+    <string name="text_text_speech">Синтез речи</string>
+    <string name="text_vibration">Вибрация</string>
+    <string name="send_comment">Оставьте свой комментарий…</string>
+    <string name="text_notification">Напоминания</string>
+    <string name="text_support_service">Служба поддержки</string>
 </resources>

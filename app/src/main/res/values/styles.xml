@@ -30,5 +30,10 @@
         <item name="android:layout_margin">1dp</item>
     </style>
 
+    <style name="overflowText_appearance" parent="@android:style/TextAppearance">
+        <item name="android:textColor">@android:color/holo_red_light</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+    
 </resources>
 

@@ -83,6 +83,7 @@
                             android:layout_height="wrap_content"
                             app:counterEnabled="true"
                             app:errorEnabled="true"
+                            app:counterOverflowTextAppearance="@style/overflowText_appearance"
                             app:counterMaxLength="60">
 
                             <EditText

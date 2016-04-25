@@ -4,7 +4,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 
-import com.alexey.reminder.SearchCursorWrapper;
+import com.alexey.reminder.model.cursor.SearchCursorWrapper;
 import com.alexey.reminder.model.PriorityEnum.Priority;
 import com.alexey.reminder.model.TypeNoteEnum.TypeNote;
 

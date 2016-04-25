@@ -35,9 +35,9 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".AlarmReceiver" />
+        <receiver android:name=".receiver.AlarmReceiver" />
         <receiver
-            android:name=".StartAlarmReceiver"
+            android:name=".receiver.StartAlarmReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
@@ -45,7 +45,7 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".TextToSpeechService" />
+        <service android:name=".service.TextToSpeechService" />
         <!--
              ATTENTION: This was auto-generated to add Google Play services to your project for
              App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -54,6 +54,7 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
+        <activity android:name=".SettingsActivity"></activity>
     </application>
 
 </manifest>
